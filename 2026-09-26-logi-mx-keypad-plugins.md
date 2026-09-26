@@ -2,8 +2,8 @@
 
 Status: Not started.
 Phase 0 research is written up in `docs/phase-0-findings.md`.
-Code for phases 1, 3, and 4 exists and awaits review on the device; see `docs/agent-hub.md` and `docs/iterm.md`.
-Phase 2 waits for that review.
+Code for phases 1, 3, 4, 5, and 6 exists and awaits review on the device; see `docs/agent-hub.md`, `docs/iterm.md`, and `docs/app-plugins.md`.
+Phase 2 and the default profiles wait for that review.
 
 ## Goal
 

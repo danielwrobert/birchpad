@@ -2,7 +2,7 @@ using DevDeck.Core.Config;
 
 namespace DevDeck.Core.Tests;
 
-public sealed class SavedCommandsTests : IDisposable
+public sealed class SavedEntriesTests : IDisposable
 {
     private readonly string dir = Path.Combine(Path.GetTempPath(), "devdeck-cmds-" + Guid.NewGuid().ToString("N"));
 
@@ -19,11 +19,11 @@ public sealed class SavedCommandsTests : IDisposable
     {
         var file = Path.Combine(this.dir, "commands.json");
 
-        var commands = SavedCommands.LoadOrCreate(file, out var error);
+        var commands = SavedEntries.LoadCommands(file, out var error);
 
         Assert.Null(error);
-        Assert.Equal(SavedCommands.Starters, commands);
-        Assert.Equal(SavedCommands.Starters, SavedCommands.LoadOrCreate(file, out _));
+        Assert.Equal(SavedEntries.StarterCommands, commands);
+        Assert.Equal(SavedEntries.StarterCommands, SavedEntries.LoadCommands(file, out _));
     }
 
     [Fact]
@@ -33,9 +33,19 @@ public sealed class SavedCommandsTests : IDisposable
         var file = Path.Combine(this.dir, "commands.json");
         File.WriteAllText(file, """[{"name":"up","command":"ddev start"},{"name":"UP","command":"other"},{"name":"","command":"x"},{"name":"blank"}]""");
 
-        var commands = SavedCommands.LoadOrCreate(file, out _);
+        var commands = SavedEntries.LoadCommands(file, out _);
 
         Assert.Equal([new SavedCommand("up", "ddev start")], commands);
+    }
+
+    [Fact]
+    public void Prompts_use_the_same_rules()
+    {
+        Directory.CreateDirectory(this.dir);
+        var file = Path.Combine(this.dir, "prompts.json");
+        File.WriteAllText(file, """[{"name":"Explain","text":"Explain this."},{"name":"explain","text":"again"},{"name":"Empty","text":" "}]""");
+
+        Assert.Equal([new SavedPrompt("Explain", "Explain this.")], SavedEntries.LoadPrompts(file, out _));
     }
 
     [Fact]
@@ -45,7 +55,7 @@ public sealed class SavedCommandsTests : IDisposable
         var file = Path.Combine(this.dir, "commands.json");
         File.WriteAllText(file, "[ broken");
 
-        Assert.Empty(SavedCommands.LoadOrCreate(file, out var error));
+        Assert.Empty(SavedEntries.LoadCommands(file, out var error));
         Assert.NotNull(error);
     }
 }

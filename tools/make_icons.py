@@ -25,3 +25,5 @@ def icon(path, background, glyph, glyph_color=(255, 255, 255)):
 
 icon(ROOT / "src/ITermPlugin/package/metadata/Icon256x256.png", (30, 30, 30), ">_", (0, 215, 95))
 icon(ROOT / "src/AgentHubPlugin/package/metadata/Icon256x256.png", (46, 107, 230), "[*]")
+icon(ROOT / "src/CodexPlugin/package/metadata/Icon256x256.png", (31, 164, 99), "{ }")
+icon(ROOT / "src/ClaudePlugin/package/metadata/Icon256x256.png", (142, 84, 233), "<*>")
