@@ -38,5 +38,9 @@ The app server makes no model calls.
 
 ## Default profiles
 
+`tools/profiles.py` defines a three-page layout for each app plugin and writes it to `profiles/generated/<app>/ProfileInfo.json` in the schema the plugin service stores.
+Page 1 is the same everywhere: session slots 1 to 5, Next, Allow, Deny, and Stop from Agent Hub.
+`python3 tools/profiles.py check` confirms every placed key names an action class and parameter that exist in the plugin sources.
+
 A `.lp5` profile is a zip of the profile folder, `ApplicationInfo.json`, the app icon, and package metadata.
-The exact file names are obfuscated in the plugin service, so the default profiles will be built from one profile exported from Options+.
+The archive's file names are obfuscated in the plugin service, so packing the generated layouts into `DefaultProfile70mac.lp5` waits for one profile exported from Options+ to copy the layout from.

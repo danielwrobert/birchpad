@@ -1,0 +1,243 @@
+{
+  "$type": "Loupedeck.Service.ApplicationProfile, LoupedeckService",
+  "name": "C9DD801AE3BF56E787BBC77863E0D691",
+  "profileFlags": "None",
+  "displayName": "DevDeck Claude",
+  "description": null,
+  "deviceType": "Loupedeck70",
+  "applicationName": "@_claude",
+  "nativePluginName": "Claude",
+  "hasNativePlugin": true,
+  "additionalNativePluginNames": [
+    "AgentHub"
+  ],
+  "profileSettings": {
+    "$type": "Loupedeck.DictionaryNoCase`1[[System.String, System.Private.CoreLib]], PluginApi"
+  },
+  "actionImages90": null,
+  "actionImages60": null,
+  "wheelImages": null,
+  "actionColors": null,
+  "macroCommands": [],
+  "macroAdjustments": [],
+  "profileCommands": [],
+  "profileAdjustments": [],
+  "packageName": null,
+  "packageVersion": null,
+  "profileActions": [],
+  "layout": {
+    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayout7, LoupedeckService",
+    "deviceType": "Loupedeck70",
+    "profileFlags": "None",
+    "layoutModes": [
+      {
+        "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutMode7, LoupedeckService",
+        "deviceType": "Loupedeck70",
+        "modeName": "main",
+        "parentModeName": null,
+        "actions": null,
+        "dynamicButtonPages": null,
+        "dynamicEncoderPages": null,
+        "workspaces": [
+          {
+            "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutWorkspace7, LoupedeckService",
+            "name": "A4B92EB2A39C5B1CBD54BF5795BF6E34",
+            "displayName": "Workspace 1",
+            "description": null,
+            "pressPages": [
+              {
+                "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutPage7, LoupedeckService",
+                "name": "B1C96EFB8B7957C5BC7D9488E035E704",
+                "displayName": "Agents",
+                "description": null,
+                "controls": [
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 0,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___1",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 1,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___2",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 2,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___3",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 3,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___4",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 4,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___5",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 5,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.NextWaitingCommand",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 6,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.AnswerCommand___allow",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 7,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.AnswerCommand___deny",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 8,
+                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.InterruptCommand",
+                    "rotateAction": null
+                  }
+                ]
+              },
+              {
+                "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutPage7, LoupedeckService",
+                "name": "9377E206AA035F1397FC5CF7AB84788D",
+                "displayName": "Claude",
+                "description": null,
+                "controls": [
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 0,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___new-chat",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 1,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___new-code",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 2,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___needs-input",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 3,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___chat-cowork",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 4,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___code",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 5,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___palette",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 6,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___previous-session",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 7,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___next-session",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 8,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___stop",
+                    "rotateAction": null
+                  }
+                ]
+              },
+              {
+                "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutPage7, LoupedeckService",
+                "name": "0927616B2CE45BEDBA4B51D8429E4DDA",
+                "displayName": "More",
+                "description": null,
+                "controls": [
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 0,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.ClaudePromptCommand___Explain",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 1,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.ClaudePromptCommand___Review",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 2,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.ClaudePromptCommand___Tests",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 3,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___sidebar",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 4,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___terminal",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 5,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___changes",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 6,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___side-chat",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 7,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___dictate",
+                    "rotateAction": null
+                  },
+                  {
+                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                    "controlId": 8,
+                    "pressAction": "$Claude___Loupedeck.ClaudePlugin.Actions.AppCommand___search",
+                    "rotateAction": null
+                  }
+                ]
+              }
+            ],
+            "rotatePages": []
+          }
+        ],
+        "homeWorkspaceName": "A4B92EB2A39C5B1CBD54BF5795BF6E34"
+      }
+    ],
+    "folderPages": []
+  }
+}
