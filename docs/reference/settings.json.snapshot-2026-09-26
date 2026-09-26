@@ -1,0 +1,370 @@
+{
+  "skillListingBudgetFraction": 0.03,
+  "env": {
+    "TUT_VOICE": "vr2pNDyJZVE6hz2LmWRv"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(awk *)",
+      "Bash(bd *)",
+      "Bash(beads:*)",
+      "Bash(cat *)",
+      "Bash(composer *)",
+      "Bash(corepack *)",
+      "Bash(cp *)",
+      "Bash(curl *)",
+      "Bash(ddev *)",
+      "Bash(diff *)",
+      "Bash(dolt *)",
+      "Bash(echo *)",
+      "Bash(find *)",
+      "Bash(gh *)",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(head *)",
+      "Bash(jq *)",
+      "Bash(less *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(mv *)",
+      "Bash(npm *)",
+      "Bash(patch *)",
+      "Bash(pnpm *)",
+      "Bash(pwd *)",
+      "Bash(rsync *)",
+      "Bash(sed *)",
+      "Bash(sort *)",
+      "Bash(tail *)",
+      "Bash(tar *)",
+      "Bash(tee *)",
+      "Bash(touch *)",
+      "Bash(tree *)",
+      "Bash(uniq *)",
+      "Bash(unzip *)",
+      "Bash(wc *)",
+      "Bash(wget *)",
+      "Bash(which *)",
+      "Bash(yq *)",
+      "Bash(zip *)",
+      "Edit",
+      "Read",
+      "WebFetch(domain:api.drupal.org)",
+      "WebFetch(domain:ddev.com)",
+      "WebFetch(domain:ddev.readthedocs.io)",
+      "WebFetch(domain:developer.wordpress.org)",
+      "WebFetch(domain:getcomposer.org)",
+      "WebFetch(domain:git.drupalcode.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:githubusercontent.com)",
+      "WebFetch(domain:make.wordpress.org)",
+      "WebFetch(domain:nextjs.org)",
+      "WebFetch(domain:nodejs.org)",
+      "WebFetch(domain:npmjs.com)",
+      "WebFetch(domain:packagist.org)",
+      "WebFetch(domain:react.dev)",
+      "WebFetch(domain:stackoverflow.com)",
+      "WebFetch(domain:tailwindcss.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:www.drupal.org)",
+      "WebFetch(domain:www.figma.com)",
+      "WebFetch(domain:www.typescriptlang.org)",
+      "WebSearch",
+      "Write",
+      "mcp__chrome-devtools__*",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-get_comment",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-get_task",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-get_tasklist",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-get_user",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-list_comments",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-list_notebooks",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-list_projects",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-list_tasks",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-list_users",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-list_workflow_stages",
+      "mcp__claude_ai_Teamwork_com_MCP_Server__twprojects-search",
+      "mcp__plugin_figma_figma__*",
+      "mcp__plugin_playwright_playwright__*"
+    ],
+    "defaultMode": "auto"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Tink.aiff"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=Notification&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 330 -X POST --data-binary @- \"http://localhost:8765/permission?event=PermissionRequest&client=logi-claude-desktop\"; exit 0",
+            "timeout": 330
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=PostToolUse&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=PreToolUse&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=SessionEnd&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=SessionStart&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Tink.aiff"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=Stop&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=StopFailure&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/thejimbirch/.config/iterm2/cc-status"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=UserPromptSubmit&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=PostToolUseFailure&client=logi-claude-desktop\"; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "sh '/Users/thejimbirch/.claude/claude-desktop/statusline.sh'"
+  },
+  "enabledPlugins": {
+    "beads@beads-marketplace": true,
+    "cloudflare@cloudflare": true,
+    "cms-cultivator@claude-toolbox": true,
+    "codex@openai-codex": true,
+    "delivery-record@claude-toolbox": true,
+    "devops-skills@kanopi-devops-skills": false,
+    "figma@claude-plugins-official": false,
+    "playwright@claude-plugins-official": true,
+    "pm-skills@kanopi-pm-skills": true,
+    "premium-service-skills@kanopi-premium-services": true,
+    "screencast-skills@claude-toolbox": true
+  },
+  "extraKnownMarketplaces": {
+    "cloudflare": {
+      "source": {
+        "source": "github",
+        "repo": "cloudflare/skills"
+      }
+    },
+    "kanopi-devops-skills": {
+      "source": {
+        "source": "github",
+        "repo": "kanopi/devops-skills"
+      }
+    },
+    "kanopi-pm-skills": {
+      "source": {
+        "source": "github",
+        "repo": "kanopi/pm-skills"
+      }
+    },
+    "kanopi-premium-services": {
+      "source": {
+        "source": "github",
+        "repo": "kanopi/premium-service-skills"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "autoUpdatesChannel": "latest",
+  "plansDirectory": "./.claude/plans",
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "skipWorkflowUsageWarning": true,
+  "verbose": false,
+  "remoteControlAtStartup": false,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {},
+  "voiceEnabled": true
+}

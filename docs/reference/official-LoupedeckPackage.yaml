@@ -1,0 +1,95 @@
+type: plugin4
+name: ClaudeDesktop
+displayName: Claude Desktop (Beta)
+version: 1.0.0.0011
+author: Logitech Europe SA
+copyright: Copyright © 2026 Logitech Europe SA. All rights reserved.
+
+description: |
+
+  Control Claude Code sessions running in Claude Desktop from your Logi device.
+  Live session status tiles, one-press permission answers and session interrupt.
+
+homePageUrl: https://www.logitech.com/en-us
+supportPageUrl: https://support.logi.com/hc/articles/25522063648407-Other-Plugins-MX-Creative-Console
+
+# 0xFFD97757, the coral a session tile rests on.
+#
+# What the icon editor paints behind an action while it is being edited. Black there put the tile in
+# a black box that looks nothing like the key, so it matches the tile instead. This one is not the
+# folder marker - see foregroundColor below, which used to carry the same value and no longer does.
+#
+# Declaring it here is not enough on its own. Loading a plugin reads this and then overwrites it
+# from metadata/DefaultIconTemplate.ict, whose backgroundColor wins outright - see
+# PluginManager.LoadPlugins, "update plugin colors from `DefaultIconTemplate.ict` file". The .ict
+# said white, so this coral never reached anything and the editor drew a white name on a white
+# background. Both files have to carry this value; guarded by
+# IconRecolourTests.TheEditorPaintsTheSameColourBehindAnActionAsTheTileItIsEditing.
+backgroundColor: 4292441943
+
+# 0xFFFFFFFF, white.
+#
+# The host paints a folder marker across the top of any key that opens a folder, which every session
+# slot is. It cannot be moved or suppressed, but it is a single-colour vector and the host recolours
+# those to this - see VectorImage.ReplaceForegroundColor. So the marker IS the bar the design draws
+# across the top of a session tile ("Rectangle 2", white, 29 by 6, centred on the top edge), and it
+# only has to be the right colour. It was coral, on the older idea of hiding the marker inside the
+# tile and drawing our own bar over it, which showed both bars at once on the device.
+#
+# Must match the image colour in metadata/DefaultIconTemplate.ict. Changing only the .ict was tried
+# and the bar stayed coral on the device, so whichever of the two the host reads, both have to say
+# the same thing - guarded by IconRecolourTests.TheManifestPaintsTheFolderMarkerTheSameColourAsTheTemplate.
+foregroundColor: 4294967295
+
+# 0xFFD97757, the same coral as the background, so the name the host writes is never seen.
+#
+# Every key draws its own name into its artwork, and has to. On the device the host's layout is
+# never used - metadata/DefaultIconTemplate.ict gives the whole key to the image and leaves no text
+# item for a name to sit in - so what the tile draws is the only label there is. Taking it off was
+# tried and the deck came back as a grid of unlabelled glyphs.
+#
+# Wherever the host does compose a key, in the action editor and the pickers, it writes the action's
+# name underneath our artwork as well, and the name reads twice. That one cannot be suppressed: the
+# per-action template that would replace it is handed back as the finished icon rather than as a
+# template, so an entry carrying no artwork draws the not-found placeholder. What is left is to
+# write it in the colour it sits on.
+#
+# It was white until the background stopped being white, which is why the second name only appeared
+# this morning. It had been there all along, unreadable, and was reported as a blank white strip.
+#
+# The way to have one legible name on every surface is a profile shipped in the package: a saved
+# icon replaces this template everywhere, including the device, which is what editing a key by hand
+# does. That is KIROS-104549's default profile, and it is the proper fix for this.
+#
+# Guarded by IconRecolourTests.TheNameTheHostWritesUnderAKeyIsPaintedOut.
+textColor: 4294967295
+
+# The keypad only, not the whole Logitech Creative family.
+#
+# The family also covers the MX Creative Dialpad and the Actions Ring. Everything here is a grid of
+# session tiles you press into: the dialpad has four keys, one of which the host takes for the way
+# back, and the ring is not somewhere to read a project name and a status off a tile. Appearing on
+# both gave those users a plugin to dismiss rather than anything to use.
+supportedDevices:
+    - MxCreativeKeypad
+
+pluginFileName: ClaudeDesktopPlugin.dll
+
+pluginFolderWin: .
+
+pluginFolderMac: .
+
+# HasNoApplication, because a deck of session tiles is for watching sessions WHILE working
+# somewhere else. An application plugin only surfaces when its own app is in front, and the profile
+# switched away the moment the user moved to Claude Code - which is the opposite of what a status
+# display is for.
+#
+# This is one of three places that had to agree, and having only some of them say so is why the
+# @_claudedesktop registration kept coming back: the property on the Plugin class
+# (HasNoApplication), the names returned by ClaudeDesktopApplication, and this list. The manifest
+# was being honoured all along; the other two kept the entry alive.
+#
+# NoUserInputEmulation is deliberately not declared. This plugin does emulate input - Escape to
+# interrupt, and the chat keys - and claiming otherwise would be false.
+pluginCapabilities:
+    - HasNoApplication

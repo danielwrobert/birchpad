@@ -1,0 +1,169 @@
+Apple > About This Mac
+Apple > System Information
+Apple > System Settings…, 2 updates
+Apple > App Store
+Apple > Recent Items > Applications
+Apple > Recent Items > Archive Utility
+Apple > Recent Items > Show “Archive Utility” in Finder
+Apple > Recent Items > Caffeine
+Apple > Recent Items > Show “Caffeine” in Finder
+Apple > Recent Items > ChatGPT
+Apple > Recent Items > Show “ChatGPT” in Finder
+Apple > Recent Items > Claude
+Apple > Recent Items > Show “Claude” in Finder
+Apple > Recent Items > Firefox
+Apple > Recent Items > Show “Firefox” in Finder
+Apple > Recent Items > Logi Options+
+Apple > Recent Items > Show “Logi Options+” in Finder
+Apple > Recent Items > Privileges
+Apple > Recent Items > Show “Privileges” in Finder
+Apple > Recent Items > Slack
+Apple > Recent Items > Show “Slack” in Finder
+Apple > Recent Items > Sublime Text
+Apple > Recent Items > Show “Sublime Text” in Finder
+Apple > Recent Items > System Settings
+Apple > Recent Items > Show “System Settings” in Finder
+Apple > Recent Items > Documents
+Apple > Recent Items > CIO100LeadershipLive_Boston_Color-White.svg
+Apple > Recent Items > Show “CIO100LeadershipLive_Boston_Color-White.svg” in Finder
+Apple > Recent Items > Governing AI-Assisted Delivery.html
+Apple > Recent Items > Show “Governing AI-Assisted Delivery.html” in Finder
+Apple > Recent Items > Kanopi Studios Check one important journey.pdf
+Apple > Recent Items > Show “Kanopi Studios Check one important journey.pdf” in Finder
+Apple > Recent Items > storyboard.md
+Apple > Recent Items > Show “storyboard.md” in Finder
+Apple > Recent Items > tutorial.mp4
+Apple > Recent Items > Show “tutorial.mp4” in Finder
+Apple > Recent Items > tutorial.mp4
+Apple > Recent Items > Show “tutorial.mp4” in Finder
+Apple > Recent Items > Webinar · Website 1536×863@2x(2).png
+Apple > Recent Items > Show “Webinar · Website 1536×863@2x(2).png” in Finder
+Apple > Recent Items > Webinar · Website 1536×863@2x(3).png
+Apple > Recent Items > Show “Webinar · Website 1536×863@2x(3).png” in Finder
+Apple > Recent Items > Webinar · Website 1536×863@2x(4).png
+Apple > Recent Items > Show “Webinar · Website 1536×863@2x(4).png” in Finder
+Apple > Recent Items > Welcome To EFTPS - Payments.pdf
+Apple > Recent Items > Show “Welcome To EFTPS - Payments.pdf” in Finder
+Apple > Recent Items > Servers
+Apple > Recent Items > Macintosh HD
+Apple > Recent Items > OrbStack
+Apple > Recent Items > Clear Menu
+Apple > Force Quit…	⌥⌘⎋
+Apple > Force Quit ChatGPT	⌥⇧⌘⎋
+Apple > Sleep
+Apple > Restart…
+Apple > Restart
+Apple > Shut Down…
+Apple > Shut Down
+Apple > Lock Screen	⌃⌘Q
+Apple > Log Out Jim Birch…	⇧⌘Q
+Apple > Log Out Jim Birch	⌥⇧⌘Q
+ChatGPT > About ChatGPT
+ChatGPT > Settings…	⌘,
+ChatGPT > Check for Updates…
+ChatGPT > Log Out
+ChatGPT > Services > Activity Monitor
+ChatGPT > Services > Allocations & Leaks
+ChatGPT > Services > File Activity
+ChatGPT > Services > System Trace
+ChatGPT > Services > Ask Claude
+ChatGPT > Services > New Claude Code Session Here
+ChatGPT > Services > Send to Claude
+ChatGPT > Services > Services Settings…
+ChatGPT > Hide ChatGPT	⌘H
+ChatGPT > Hide Others	⌥⌘H
+ChatGPT > Show All
+ChatGPT > Quit ChatGPT	⌘Q
+File > New Window
+File > New Chat	⌘N
+File > New Temporary Chat	⇧⌘N
+File > Open Folder…	⌘O
+File > Close	⌘W
+Edit > Undo	⌘Z
+Edit > Redo	⇧⌘Z
+Edit > Cut	⌘X
+Edit > Copy	⌘C
+Edit > Paste	⌘V
+Edit > Paste and Match Style	⇧⌘V
+Edit > Delete
+Edit > Select All	⌘A
+Edit > Substitutions > Show Substitutions
+Edit > Substitutions > Smart Quotes
+Edit > Substitutions > Smart Dashes
+Edit > Substitutions > Text Replacement
+Edit > Speech > Start Speaking
+Edit > Speech > Stop Speaking
+Edit > Writing Tools > Show Writing Tools
+Edit > Writing Tools > Proofread
+Edit > Writing Tools > Rewrite
+Edit > Writing Tools > Make Friendly
+Edit > Writing Tools > Make Professional
+Edit > Writing Tools > Make Concise
+Edit > Writing Tools > Summarize
+Edit > Writing Tools > Create Key Points
+Edit > Writing Tools > Make List
+Edit > Writing Tools > Make Table
+Edit > Writing Tools > Compose…
+Edit > AutoFill > Contact…
+Edit > AutoFill > Passwords…
+Edit > AutoFill > Credit Card…
+Edit > Start Dictation…	(none)🎤
+Edit > Emoji & Symbols	(none)🌐
+View > Toggle Sidebar	⌘B
+View > Toggle Bottom Panel	⌘J
+View > Toggle Pinned Summary
+View > Open Terminal	⌃`
+View > Toggle File Tree	⇧⌘E
+View > Toggle Review Panel	⌥⌘B
+View > Browser > Open Browser Tab	⌘T
+View > Browser > Focus Browser Address Bar
+View > Browser > Reload Browser Page	⌘R
+View > Find	⌘F
+View > Previous Chat	⇧⌘[
+View > Next Chat	⇧⌘]
+View > Back	⌘[
+View > Forward	⌘]
+View > Zoom In	⌘+
+View > Zoom Out	⌘-
+View > Actual Size	⌘0
+View > Enter Full Screen	24F
+Window > Minimize	⌘M
+Window > Minimize All	⌥⌘M
+Window > Zoom
+Window > Zoom All
+Window > Fill	28F
+Window > Center	28C
+Window > Move & Resize > Halves
+Window > Move & Resize > Left
+Window > Move & Resize > Right
+Window > Move & Resize > Top
+Window > Move & Resize > Bottom
+Window > Move & Resize > Quarters
+Window > Move & Resize > Top Left
+Window > Move & Resize > Top Right
+Window > Move & Resize > Bottom Left
+Window > Move & Resize > Bottom Right
+Window > Move & Resize > Arrange
+Window > Move & Resize > Left & Right
+Window > Move & Resize > Left & Quarters
+Window > Move & Resize > Right & Left
+Window > Move & Resize > Right & Quarters
+Window > Move & Resize > Top & Bottom
+Window > Move & Resize > Top & Quarters
+Window > Move & Resize > Bottom & Top
+Window > Move & Resize > Bottom & Quarters
+Window > Move & Resize > Quarters
+Window > Move & Resize > Return to Previous Size	28R
+Window > Full Screen Tile
+Window > Bring All to Front
+Window > Arrange in Front
+Window > Remove Window from Set
+Window > ChatGPT
+Help > Documentation
+Help > Keyboard Shortcuts	⌘/
+Help > What's New
+Help > Troubleshooting
+Help > System Status
+Help > Send Feedback
+Help > Task Manager
+Help > Start Performance Trace

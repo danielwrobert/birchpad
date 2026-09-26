@@ -1,0 +1,22 @@
+{
+  // How sessions claim slots: "sticky", "recency" or "settled".
+  "slotOrder": "sticky",
+
+  // Whether a prompt key sends what it types. Set false to have it left for editing.
+  "promptAutoSubmit": true,
+
+  // Sent along with whatever is on the clipboard.
+  "chatClipboardPrompts": [
+    { "name": "Clipboard", "text": "Have a look at this:" }
+  ],
+
+  // Opens a new chat with the text already in it. One key per entry.
+  //
+  // These need text: an entry with a name and nothing to send is dropped, because a key that is
+  // labelled and wired to nothing looks broken when pressed. The example here used to have none,
+  // so the starter file produced no keys at all.
+  "chatPrompts": [
+    { "name": "Explain", "text": "Explain what this code does, briefly." },
+    { "name": "Review", "text": "Review my changes and point out anything wrong." }
+  ]
+}

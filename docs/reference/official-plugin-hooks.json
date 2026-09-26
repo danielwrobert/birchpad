@@ -1,0 +1,88 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": null,
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=Notification&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 330 -X POST --data-binary @- \"http://localhost:8765/permission?event=PermissionRequest&client=logi-claude-desktop\"; exit 0",
+        "timeout": 330
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=PostToolUse&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=PreToolUse&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": null,
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=SessionEnd&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": null,
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=SessionStart&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": null,
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=Stop&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "StopFailure": [
+      {
+        "matcher": null,
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=StopFailure&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": null,
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=UserPromptSubmit&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "type": "command",
+        "command": "curl -s --connect-timeout 0.5 -m 5 -X POST --data-binary @- \"http://localhost:8765/hook?event=PostToolUseFailure&client=logi-claude-desktop\"; exit 0",
+        "timeout": 5
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "sh '/Users/thejimbirch/.claude/claude-desktop/statusline.sh'"
+  }
+}

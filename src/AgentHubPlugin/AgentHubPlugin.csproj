@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Loupedeck.AgentHubPlugin</RootNamespace>
+    <LangVersion>latest</LangVersion>
+
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <PluginApiDir Condition="$(OS) == 'Windows_NT'">C:\Program Files\Logi\LogiPluginService\</PluginApiDir>
+    <PluginApiDir Condition="$(OS) != 'Windows_NT'">/Applications/Utilities/LogiPluginService.app/Contents/MonoBundle/</PluginApiDir>
+
+    <PluginDir Condition="$(OS) == 'Windows_NT'">$(LocalAppData)\Logi\LogiPluginService\Plugins\</PluginDir>
+    <PluginDir Condition="$(OS) != 'Windows_NT'">~/Library/Application\ Support/Logi/LogiPluginService/Plugins/</PluginDir>
+
+    <BaseOutputPath>$(MSBuildThisFileDirectory)bin\</BaseOutputPath>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\bin\</OutputPath>
+
+    <PluginShortName>AgentHub</PluginShortName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="PluginApi">
+      <HintPath>$(PluginApiDir)PluginApi.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DevDeck.Core\DevDeck.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="package\**" />
+  </ItemGroup>
+
+  <Target Name="CopyPackage" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <PackageFiles Include="package\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)..\%(RecursiveDir)" />
+  </Target>
+
+  <!-- Link the build output into Logi Plugin Service and ask it to reload the plugin. -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(OS) != 'Windows_NT'">
+    <Exec Command="echo $(BaseOutputPath)$(Configuration)\ &gt; $(PluginDir)$(ProjectName).link" />
+    <Exec Command="open loupedeck:plugin/$(PluginShortName)/reload" ContinueOnError="true" />
+  </Target>
+
+  <Target Name="PluginClean" AfterTargets="CoreClean" Condition="$(OS) != 'Windows_NT'">
+    <Exec Command="rm -f $(PluginDir)$(ProjectName).link" />
+    <RemoveDir Directories="$(OutputPath)..\" />
+  </Target>
+
+</Project>

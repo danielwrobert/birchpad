@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AgentHubPlugin/AgentHubPlugin.csproj" />
+    <Project Path="src/DevDeck.Core/DevDeck.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DevDeck.Core.Tests/DevDeck.Core.Tests.csproj" />
+  </Folder>
+</Solution>
