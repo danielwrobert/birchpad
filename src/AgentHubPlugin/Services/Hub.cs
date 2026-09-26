@@ -1,9 +1,13 @@
 namespace Loupedeck.AgentHubPlugin.Services
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
     using System.Threading;
 
     using DevDeck.Core.Claude;
+    using DevDeck.Core.Cloud;
     using DevDeck.Core.Http;
     using DevDeck.Core.Mac;
     using DevDeck.Core.Permissions;
@@ -19,7 +23,7 @@ namespace Loupedeck.AgentHubPlugin.Services
         private readonly Timer timer;
         private Int32 ticks;
 
-        public Hub(Int32 port)
+        public Hub(Int32 port, TimeSpan cloudInterval)
         {
             this.Sessions = new SessionStore(SlotCount, new DesktopSessionIndex());
             this.Permissions = new PermissionBroker();
@@ -27,6 +31,20 @@ namespace Loupedeck.AgentHubPlugin.Services
             this.Listener = new HookListener(port, this.Sessions, this.Permissions, log: message => PluginLog.Warning(message));
             this.Focus = new SessionFocus(this.Mac);
 
+            var claude = CloudHelper.FindClaude();
+            if (claude != null)
+            {
+                var dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DevDeck");
+                var helper = new CloudHelper(claude, Path.Combine(dataDir, "helper"));
+                this.Cloud = new CloudCache(helper.Run, Path.Combine(dataDir, "cloud-cache.json"), cloudInterval);
+                this.Cloud.Changed += (_, _) => this.RaiseChanged();
+            }
+            else
+            {
+                PluginLog.Warning("claude CLI not found; cloud routines and remote sessions are off");
+            }
+
+            this.LocalRoutines = ScheduledTaskReader.Read();
             this.Sessions.Changed += (_, _) => this.RaiseChanged();
             this.Permissions.Changed += (_, _) => this.RaiseChanged();
             this.timer = new Timer(_ => this.OnTick(), null, Timeout.Infinite, Timeout.Infinite);
@@ -45,12 +63,19 @@ namespace Loupedeck.AgentHubPlugin.Services
 
         public SessionFocus Focus { get; }
 
+        // Null when the claude CLI is missing.
+        public CloudCache Cloud { get; }
+
+        // Claude Desktop scheduled tasks, reread every minute.
+        public IReadOnlyList<ScheduledTask> LocalRoutines { get; private set; }
+
         public Boolean Start(out String error)
         {
             try
             {
                 this.Listener.Start();
                 this.timer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+                this.Cloud?.Start();
                 error = null;
                 return true;
             }
@@ -64,6 +89,7 @@ namespace Loupedeck.AgentHubPlugin.Services
         public void Dispose()
         {
             this.timer.Dispose();
+            this.Cloud?.Dispose();
             this.Listener.Dispose();
         }
 
@@ -71,7 +97,13 @@ namespace Loupedeck.AgentHubPlugin.Services
         {
             try
             {
-                if (!this.Sessions.Prune(DateTimeOffset.UtcNow) && ++this.ticks % 10 == 0)
+                ++this.ticks;
+                if (this.ticks % 60 == 0)
+                {
+                    this.LocalRoutines = ScheduledTaskReader.Read();
+                }
+
+                if (!this.Sessions.Prune(DateTimeOffset.UtcNow) && this.ticks % 10 == 0)
                 {
                     // Elapsed times on tiles are shown in whole minutes, so a redraw every 10 seconds is enough.
                     this.RaiseChanged();

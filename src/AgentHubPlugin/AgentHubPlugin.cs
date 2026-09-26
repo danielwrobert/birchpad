@@ -23,7 +23,8 @@ namespace Loupedeck.AgentHubPlugin
         public override void Load()
         {
             var port = this.TryGetPluginSetting("port", out var value) && Int32.TryParse(value, out var parsed) ? parsed : Hub.DefaultPort;
-            this.Hub = new Hub(port);
+            var cloudMinutes = this.TryGetPluginSetting("cloudIntervalMinutes", out var minutes) && Int32.TryParse(minutes, out var m) && m >= 5 ? m : 30;
+            this.Hub = new Hub(port, TimeSpan.FromMinutes(cloudMinutes));
             if (this.Hub.Start(out var error))
             {
                 PluginLog.Info($"Agent Hub listening on 127.0.0.1:{port}");

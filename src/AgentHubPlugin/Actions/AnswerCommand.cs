@@ -5,7 +5,7 @@ namespace Loupedeck.AgentHubPlugin.Actions
 
     using DevDeck.Core.Permissions;
 
-    using Loupedeck.AgentHubPlugin.Rendering;
+    using Loupedeck.Tiles;
 
     // Answers the oldest permission request held by the hub.
     public class AnswerCommand : HubCommand

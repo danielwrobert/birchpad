@@ -3,7 +3,7 @@ namespace Loupedeck.AgentHubPlugin.Actions
     using System;
     using System.Globalization;
 
-    using Loupedeck.AgentHubPlugin.Rendering;
+    using Loupedeck.Tiles;
     using Loupedeck.AgentHubPlugin.Services;
 
     // One key per slot. A session keeps its slot until it ends, so a tile stays put while you work.

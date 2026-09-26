@@ -40,6 +40,20 @@ It recognizes its own entries by URL, backs up the file first, and `remove` rest
 While the official Claude plugin is installed, PermissionRequest goes to `/claude/hook` (status only).
 After the official plugin is removed, `install --blocking-permissions` points it at `/claude/permission` so the keypad can answer.
 
+## Cloud helper
+
+When the `claude` CLI is found, Agent Hub runs it headless every 30 minutes (plugin setting `cloudIntervalMinutes`, minimum 5).
+Each run costs about $0.02 of subscription usage and reads cloud routines (`RemoteTrigger`) and peer sessions (`ListAgents`).
+Results are taken from the tool output, not the model's reply, and cached in `~/Library/Application Support/DevDeck/cloud-cache.json`.
+A failed run keeps the last good lists and marks the Refresh key red.
+
+Local scheduled tasks come from Claude Desktop's `scheduled-tasks.json` and are reread every minute at no cost.
+
+## Profiles
+
+Keypad profiles are JSON files under `~/Library/Application Support/Logi/LogiPluginService/Applications/Loupedeck70/<app>/Profiles/<id>/ProfileInfo.json`.
+Each key stores an action ID such as `$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___1`, so default profiles can be generated rather than exported by hand.
+
 ## Keys
 
 - Session slot 1 to 16: a live tile per session; press to open it in Claude Desktop or its iTerm tab.
@@ -47,6 +61,10 @@ After the official plugin is removed, `install --blocking-permissions` points it
 - Stop: send Escape to the most recently active session.
 - Next: open the session waiting longest for you.
 - Clear: free the slots of finished sessions.
+- Routines folder: Claude Desktop scheduled tasks and cloud routines, soonest first, with the next run time.
+- Other sessions folder: Remote Control and cloud sessions from the helper; local sessions already have tiles.
+- Artifacts, Chats: open those pages on claude.ai in the default browser.
+- Refresh cloud: shows how old the cloud lists are; press to fetch them now.
 
 Tile colors: blue working, amber needs approval, purple question, green done, red failed, gray ready.
 

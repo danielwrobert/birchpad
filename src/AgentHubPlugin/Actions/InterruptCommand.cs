@@ -3,7 +3,7 @@ namespace Loupedeck.AgentHubPlugin.Actions
     using System;
     using System.Threading.Tasks;
 
-    using Loupedeck.AgentHubPlugin.Rendering;
+    using Loupedeck.Tiles;
 
     // Sends Escape to the most recently active working session.
     public class InterruptCommand : HubCommand

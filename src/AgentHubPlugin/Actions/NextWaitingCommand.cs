@@ -4,7 +4,7 @@ namespace Loupedeck.AgentHubPlugin.Actions
 
     using DevDeck.Core.Sessions;
 
-    using Loupedeck.AgentHubPlugin.Rendering;
+    using Loupedeck.Tiles;
 
     // Opens the session that most needs you: approvals first, then questions, then the latest finished turn.
     public class NextWaitingCommand : HubCommand

@@ -1,4 +1,4 @@
-namespace Loupedeck.AgentHubPlugin.Rendering
+namespace Loupedeck.Tiles
 {
     using System;
 
@@ -69,6 +69,22 @@ namespace Loupedeck.AgentHubPlugin.Rendering
                 b.DrawText(session.DisplayName, pad, small + (2 * pad), size - (2 * pad), size - (3 * small) - (3 * pad), BitmapColor.White, Math.Max(10, size / 7));
                 var footer = $"{LabelFor(session.State)} {Elapsed(now - session.StateSince)}";
                 b.DrawText(footer, pad, size - small - (2 * pad), size - (2 * pad), small + 2, BitmapColor.White, small);
+                return b.ToImage();
+            }
+        }
+
+        // A three-line tile: small header, name in the middle, small footer.
+        public static BitmapImage Info(String header, String name, String footer, BitmapColor background, PluginImageSize imageSize)
+        {
+            var size = Pixels(imageSize);
+            using (var b = new BitmapBuilder(size, size))
+            {
+                b.Clear(background);
+                var pad = size / 16;
+                var small = Math.Max(9, size / 9);
+                b.DrawText(header ?? String.Empty, pad, pad, size - (2 * pad), small + 2, BitmapColor.White, small);
+                b.DrawText(name ?? String.Empty, pad, small + (2 * pad), size - (2 * pad), size - (3 * small) - (3 * pad), BitmapColor.White, Math.Max(10, size / 7));
+                b.DrawText(footer ?? String.Empty, pad, size - small - (2 * pad), size - (2 * pad), small + 2, BitmapColor.White, small);
                 return b.ToImage();
             }
         }

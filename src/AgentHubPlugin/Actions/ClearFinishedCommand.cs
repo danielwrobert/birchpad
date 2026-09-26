@@ -2,7 +2,7 @@ namespace Loupedeck.AgentHubPlugin.Actions
 {
     using System;
 
-    using Loupedeck.AgentHubPlugin.Rendering;
+    using Loupedeck.Tiles;
 
     // Frees the slots of sessions that are done, failed, or ended.
     public class ClearFinishedCommand : HubCommand
