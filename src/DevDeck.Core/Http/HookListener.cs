@@ -12,10 +12,16 @@ namespace DevDeck.Core.Http;
 /// </summary>
 public sealed class HookListener : IDisposable
 {
-    // Events after which a held permission request can no longer be answered from the keypad.
-    private static readonly HashSet<string> MovedOnEvents = new(StringComparer.Ordinal)
+    // Events that end a turn: nothing held in the session can still be answered.
+    private static readonly HashSet<string> TurnEndEvents = new(StringComparer.Ordinal)
     {
-        "PostToolUse", "PostToolUseFailure", "PermissionDenied", "UserPromptSubmit", "Stop", "StopFailure", "SessionEnd", "Interrupt",
+        "UserPromptSubmit", "Stop", "StopFailure", "SessionEnd", "Interrupt",
+    };
+
+    // Events that answer one tool call: only the matching held request is released.
+    private static readonly HashSet<string> ToolDoneEvents = new(StringComparer.Ordinal)
+    {
+        "PostToolUse", "PostToolUseFailure", "PermissionDenied",
     };
 
     private readonly HttpListener listener = new();
@@ -124,6 +130,14 @@ public sealed class HookListener : IDisposable
                 return;
             }
 
+            // A web page can send a simple cross-site POST to localhost, but never with a JSON content type
+            // (that needs a preflight this listener refuses), and a browser always adds Origin.
+            if (!IsLocalJsonRequest(context.Request))
+            {
+                await Respond(context, 403, null).ConfigureAwait(false);
+                return;
+            }
+
             string body;
             using (var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8))
             {
@@ -163,10 +177,21 @@ public sealed class HookListener : IDisposable
             return (400, null);
         }
 
-        this.store.Apply(e, this.clock());
-        if (MovedOnEvents.Contains(e.EventName))
+        var now = this.clock();
+        this.store.Apply(e, now);
+        if (TurnEndEvents.Contains(e.EventName))
         {
             this.broker.ReleaseSession(e.SessionId);
+        }
+        else if (ToolDoneEvents.Contains(e.EventName))
+        {
+            this.broker.ReleaseMatching(e.SessionId, e.AgentId, e.ToolName, e.ToolInput);
+        }
+
+        // Another subagent's tool finishing must not hide a request that is still waiting.
+        if (this.broker.HasPending(e.SessionId))
+        {
+            this.store.MarkNeedsApproval(e.SessionId, now);
         }
 
         return (200, null);
@@ -207,6 +232,11 @@ public sealed class HookListener : IDisposable
         this.store.ApplyModel(sessionId, model, this.clock());
         return (200, null);
     }
+
+    internal static bool IsLocalJsonRequest(HttpListenerRequest request) =>
+        request.Headers["Origin"] is null
+        && request.ContentType is { } type
+        && type.StartsWith("application/json", StringComparison.OrdinalIgnoreCase);
 
     // A read-only view of what the hub knows, for debugging without the keypad.
     private string DescribeState()

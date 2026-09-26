@@ -9,7 +9,7 @@ Codex skips new or changed hooks until they are trusted: open /hooks in the Code
 CLI after installing and trust the DevDeck entries.
 
 Usage:
-  codex_hooks.py install [--blocking-permissions] [--codex-home ~/.codex]
+  codex_hooks.py install [--blocking-permissions] [--port 8766] [--codex-home ~/.codex]
   codex_hooks.py remove [--codex-home ~/.codex]
 """
 
@@ -61,9 +61,9 @@ def remove_ours(hooks):
     return removed
 
 
-def add_ours(hooks, script, blocking_permissions):
+def add_ours(hooks, script, blocking_permissions, port):
     def entry(route, timeout):
-        return {"hooks": [{"type": "command", "command": f"'{script}' {route}", "timeout": timeout}]}
+        return {"hooks": [{"type": "command", "command": f"'{script}' {route} {port}", "timeout": timeout}]}
 
     for event, timeout in STATUS_EVENTS.items():
         hooks.setdefault(event, []).append(entry("hook", timeout))
@@ -74,10 +74,23 @@ def add_ours(hooks, script, blocking_permissions):
         hooks.setdefault("PermissionRequest", []).append(entry("hook", 3))
 
 
+def write_in_place(path, text):
+    """Replaces a file's contents atomically without breaking a symlink or loosening its permissions."""
+    target = path.resolve()
+    tmp = target.with_name(target.name + ".devdeck-tmp")
+    tmp.write_text(text)
+    if target.exists():
+        shutil.copymode(target, tmp)
+    else:
+        tmp.chmod(0o600)
+    tmp.replace(target)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("action", choices=["install", "remove"])
     parser.add_argument("--codex-home", type=Path, default=Path.home() / ".codex")
+    parser.add_argument("--port", type=int, default=8766)
     parser.add_argument(
         "--blocking-permissions",
         action="store_true",
@@ -85,7 +98,7 @@ def main():
     )
     args = parser.parse_args()
 
-    hooks_file = args.codex_home / "hooks.json"
+    hooks_file = (args.codex_home / "hooks.json").resolve()
     config = json.loads(hooks_file.read_text()) if hooks_file.exists() else {}
     hooks = config.setdefault("hooks", {})
 
@@ -101,7 +114,7 @@ def main():
         script.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(Path(__file__).with_name(SCRIPT_NAME), script)
         script.chmod(0o755)
-        add_ours(hooks, script, args.blocking_permissions)
+        add_ours(hooks, script, args.blocking_permissions, args.port)
         added = len(STATUS_EVENTS) + 1
 
     if not hooks:
@@ -112,9 +125,7 @@ def main():
         config.setdefault("description", DESCRIPTION)
 
     if config:
-        tmp = hooks_file.with_suffix(".json.devdeck-tmp")
-        tmp.write_text(json.dumps(config, indent=2) + "\n")
-        tmp.replace(hooks_file)
+        write_in_place(hooks_file, json.dumps(config, indent=2) + "\n")
     elif hooks_file.exists():
         hooks_file.unlink()
 

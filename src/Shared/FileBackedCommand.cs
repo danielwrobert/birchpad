@@ -1,12 +1,19 @@
 namespace Loupedeck.Tiles
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
 
     // An action list rebuilt from a JSON file whenever the file is saved.
+    // Editors raise several change events per save, so reloads are debounced and run one at a time.
     public abstract class FileBackedCommand : ActionListCommand
     {
+        private static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(300);
+
+        private readonly Object reloadGate = new Object();
         private FileSystemWatcher watcher;
+        private Timer debounce;
 
         protected FileBackedCommand(String displayName, String description, String groupName)
             : base(displayName, description, groupName)
@@ -15,20 +22,21 @@ namespace Loupedeck.Tiles
 
         protected abstract String FilePath { get; }
 
-        // Clears and re-adds the options from the file. Returns an error message, or null.
-        protected abstract String Rebuild();
+        // Reads the file into options. Returns null and sets error when the file cannot be used.
+        protected abstract IEnumerable<(String Parameter, String Label, String Group, BitmapColor Color, Func<Boolean> Run)> Load(out String error);
 
         protected override Boolean OnLoad()
         {
             this.Reload();
+            this.debounce = new Timer(_ => this.Reload(), null, Timeout.Infinite, Timeout.Infinite);
             this.watcher = new FileSystemWatcher(Path.GetDirectoryName(this.FilePath), Path.GetFileName(this.FilePath))
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
                 EnableRaisingEvents = true,
             };
-            this.watcher.Changed += (_, _) => this.Reload();
-            this.watcher.Created += (_, _) => this.Reload();
-            this.watcher.Renamed += (_, _) => this.Reload();
+            this.watcher.Changed += (_, _) => this.ScheduleReload();
+            this.watcher.Created += (_, _) => this.ScheduleReload();
+            this.watcher.Renamed += (_, _) => this.ScheduleReload();
             return true;
         }
 
@@ -36,19 +44,35 @@ namespace Loupedeck.Tiles
         {
             this.watcher?.Dispose();
             this.watcher = null;
+            this.debounce?.Dispose();
+            this.debounce = null;
             return true;
         }
 
+        private void ScheduleReload() => this.debounce?.Change(Debounce, Timeout.InfiniteTimeSpan);
+
+        // Runs on the plugin thread at load, then on timer threads; never lets an exception escape.
         private void Reload()
         {
-            var error = this.Rebuild();
-            if (error != null)
+            lock (this.reloadGate)
             {
-                this.Plugin?.Log?.Warning($"{this.DisplayName}: not loaded from {this.FilePath}: {error}");
-                return;
-            }
+                try
+                {
+                    var options = this.Load(out var error);
+                    if (options == null)
+                    {
+                        this.Plugin?.Log?.Warning($"{this.DisplayName}: not loaded from {this.FilePath}: {error}");
+                        return;
+                    }
 
-            this.ParametersChanged();
+                    this.ReplaceEntries(options);
+                    this.ParametersChanged();
+                }
+                catch (Exception ex)
+                {
+                    this.Plugin?.Log?.Error(ex, $"{this.DisplayName}: reload from {this.FilePath} failed");
+                }
+            }
         }
     }
 }

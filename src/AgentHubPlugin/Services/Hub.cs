@@ -22,15 +22,19 @@ namespace Loupedeck.AgentHubPlugin.Services
         public const Int32 SlotCount = 16;
 
         private readonly Timer timer;
+        private readonly DesktopSessionIndex desktopIndex;
+        private readonly CodexThreadIndex codexIndex;
         private Int32 ticks;
 
         public Hub(Int32 port, TimeSpan cloudInterval)
         {
             var codex = CodexAppServer.FindCodex();
             this.Codex = codex == null ? null : new CodexAppServer(codex);
-            ISessionMetadataSource metadata = this.Codex == null
-                ? new DesktopSessionIndex()
-                : new CompositeMetadataSource(new DesktopSessionIndex(), new CodexThreadIndex(() => this.Codex.ListThreads()));
+            this.desktopIndex = new DesktopSessionIndex();
+            this.codexIndex = this.Codex == null ? null : new CodexThreadIndex(() => this.Codex.ListThreads());
+            ISessionMetadataSource metadata = this.codexIndex == null
+                ? this.desktopIndex
+                : new CompositeMetadataSource(this.desktopIndex, this.codexIndex);
             this.Sessions = new SessionStore(SlotCount, metadata);
             this.Permissions = new PermissionBroker();
             this.Mac = new MacAutomation(message => PluginLog.Warning(message));
@@ -88,6 +92,13 @@ namespace Loupedeck.AgentHubPlugin.Services
                 this.Listener.Start();
                 this.timer.Change(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
                 this.Cloud?.Start();
+
+                // Fill the name caches up front so the first hooks already find their session titles.
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    this.desktopIndex.Refresh();
+                    this.codexIndex?.Refresh();
+                });
                 error = null;
                 return true;
             }

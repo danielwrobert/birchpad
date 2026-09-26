@@ -37,6 +37,7 @@ python3 hooks/codex_hooks.py install
 ```
 
 Then run `codex`, type `/hooks`, and trust the DevDeck entries; Codex skips them until then.
+Both installers take `--port` (default 8766) and write it into the hook commands; use the same value as the Agent Hub `port` plugin setting.
 Both scripts back up the file they change, and `remove` takes the DevDeck entries out again.
 While Logitech's "Claude Desktop (Beta)" plugin is installed, leave off `--blocking-permissions` so the two plugins do not both hold permission requests.
 

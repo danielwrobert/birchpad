@@ -72,19 +72,78 @@ public sealed class HookListenerTests : IDisposable
         Assert.Contains("\"behavior\":\"deny\"", body);
     }
 
-    [Fact]
-    public async Task Moving_on_releases_a_held_permission_with_an_empty_body()
+    private async Task<Task<HttpResponseMessage>> Hold(string json)
     {
-        var pending = this.Post("/claude/permission", """{"session_id":"a","hook_event_name":"PermissionRequest","tool_name":"Bash"}""");
-        for (var i = 0; i < 200 && this.broker.PendingCount == 0; i++)
+        var before = this.broker.PendingCount;
+        var pending = this.Post("/claude/permission", json);
+        for (var i = 0; i < 200 && this.broker.PendingCount == before; i++)
         {
             await Task.Delay(10);
         }
 
-        await this.Post("/claude/hook", """{"session_id":"a","hook_event_name":"PostToolUse","tool_name":"Bash"}""");
+        return pending;
+    }
+
+    [Fact]
+    public async Task The_matching_tool_finishing_releases_a_held_permission()
+    {
+        var pending = await this.Hold("""{"session_id":"a","hook_event_name":"PermissionRequest","tool_name":"Bash","tool_input":{"command":"ls"}}""");
+
+        await this.Post("/claude/hook", """{"session_id":"a","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"ls"}}""");
 
         Assert.Equal(string.Empty, await (await pending).Content.ReadAsStringAsync());
         Assert.Equal(SessionState.Working, this.store.Get("a")!.State);
+    }
+
+    [Fact]
+    public async Task Another_tool_finishing_keeps_the_request_held_and_the_tile_waiting()
+    {
+        var bash = await this.Hold("""{"session_id":"a","hook_event_name":"PermissionRequest","tool_name":"Bash","tool_input":{"command":"ls"}}""");
+        var edit = await this.Hold("""{"session_id":"a","hook_event_name":"PermissionRequest","tool_name":"Edit","agent_id":"sub-1","tool_input":{"file_path":"/x"}}""");
+
+        await this.Post("/claude/hook", """{"session_id":"a","hook_event_name":"PostToolUse","tool_name":"Read","agent_id":"sub-2","tool_input":{"file_path":"/y"}}""");
+        await this.Post("/claude/hook", """{"session_id":"a","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"pwd"}}""");
+
+        // Bash is the only held Bash request, so a Bash result releases it even with a different input.
+        Assert.Equal(string.Empty, await (await bash).Content.ReadAsStringAsync());
+        Assert.False(edit.IsCompleted);
+        Assert.Equal(SessionState.NeedsApproval, this.store.Get("a")!.State);
+
+        Assert.True(this.broker.AnswerOldest(PermissionAnswer.Allow));
+        Assert.Contains("allow", await (await edit).Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Ending_the_turn_releases_everything_held()
+    {
+        var first = await this.Hold("""{"session_id":"a","hook_event_name":"PermissionRequest","tool_name":"Bash","tool_input":{"command":"ls"}}""");
+        var second = await this.Hold("""{"session_id":"a","hook_event_name":"PermissionRequest","tool_name":"Edit","tool_input":{"file_path":"/x"}}""");
+
+        await this.Post("/claude/hook", """{"session_id":"a","hook_event_name":"Stop"}""");
+
+        Assert.Equal(string.Empty, await (await first).Content.ReadAsStringAsync());
+        Assert.Equal(string.Empty, await (await second).Content.ReadAsStringAsync());
+        Assert.Equal(0, this.broker.PendingCount);
+    }
+
+    [Theory]
+    [InlineData("text/plain", null)]
+    [InlineData("application/json", "https://evil.example")]
+    public async Task Cross_site_posts_are_refused(string contentType, string? origin)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, this.Url("/claude/hook"))
+        {
+            Content = new StringContent("""{"session_id":"x","hook_event_name":"SessionStart"}""", Encoding.UTF8, contentType),
+        };
+        if (origin is not null)
+        {
+            request.Headers.Add("Origin", origin);
+        }
+
+        var response = await this.http.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Empty(this.store.All());
     }
 
     [Fact]

@@ -19,6 +19,10 @@ public sealed class CodexThreadIndex : ISessionMetadataSource
 
     public TimeSpan RescanInterval { get; init; } = TimeSpan.FromSeconds(30);
 
+    /// <summary>
+    /// Returns cached metadata. A miss starts a background refresh (at most once per <see cref="RescanInterval"/>)
+    /// and returns null, because listing threads starts a <c>codex app-server</c> process.
+    /// </summary>
     public SessionMetadata? Find(string agent, string sessionId)
     {
         if (agent != "codex")
@@ -28,23 +32,47 @@ public sealed class CodexThreadIndex : ISessionMetadataSource
 
         lock (this.gate)
         {
-            if (!this.byId.TryGetValue(sessionId, out var thread))
+            if (this.byId.TryGetValue(sessionId, out var thread))
             {
-                var now = this.clock();
-                if (now - this.lastScan < this.RescanInterval)
-                {
-                    return null;
-                }
-
-                this.lastScan = now;
-                this.byId = this.list().ToDictionary(t => t.Id, StringComparer.Ordinal);
-                if (!this.byId.TryGetValue(sessionId, out thread))
-                {
-                    return null;
-                }
+                return new SessionMetadata(SessionSource.Codex, thread.Name, thread.Cwd, Branch: null, Model: null);
             }
 
-            return new SessionMetadata(SessionSource.Codex, thread.Name, thread.Cwd, Branch: null, Model: null);
+            var now = this.clock();
+            if (now - this.lastScan >= this.RescanInterval && (this.PendingScan is null || this.PendingScan.IsCompleted))
+            {
+                this.lastScan = now;
+                this.PendingScan = Task.Run(this.Refresh);
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>The background refresh started by the last miss, for tests.</summary>
+    internal Task? PendingScan { get; private set; }
+
+    /// <summary>Lists threads now, on the calling thread. A failed listing keeps the old cache.</summary>
+    public void Refresh()
+    {
+        IReadOnlyList<CodexThread> threads;
+        try
+        {
+            threads = this.list();
+        }
+        catch (Exception)
+        {
+            return;
+        }
+
+        var map = new Dictionary<string, CodexThread>(StringComparer.Ordinal);
+        foreach (var thread in threads)
+        {
+            map[thread.Id] = thread;
+        }
+
+        lock (this.gate)
+        {
+            this.byId = map;
         }
     }
 }

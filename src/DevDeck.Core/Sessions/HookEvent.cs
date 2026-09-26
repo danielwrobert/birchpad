@@ -16,6 +16,8 @@ public sealed record HookEvent(
     string? Model = null,
     string? SessionTitle = null,
     string? Error = null,
+    string? AgentId = null,
+    JsonNode? ToolInput = null,
     JsonObject? Raw = null)
 {
     /// <summary>Parses a Claude Code hook body. Returns null when it has no session ID or event name.</summary>
@@ -62,6 +64,8 @@ public sealed record HookEvent(
             Model: Str(obj, "model"),
             SessionTitle: Str(obj, "session_title"),
             Error: Str(obj, "error"),
+            AgentId: Str(obj, "agent_id"),
+            ToolInput: obj["tool_input"],
             Raw: obj);
     }
 

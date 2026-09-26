@@ -83,7 +83,7 @@ public sealed class PermissionBroker
             entry = this.pending.FirstOrDefault();
         }
 
-        return entry is not null && entry.Answer.TrySetResult(answer);
+        return entry is not null && this.Resolve(entry, answer);
     }
 
     /// <summary>Answers the oldest pending request for one session. Returns false when it has none.</summary>
@@ -95,7 +95,7 @@ public sealed class PermissionBroker
             entry = this.pending.FirstOrDefault(e => e.Info.SessionId == sessionId);
         }
 
-        return entry is not null && entry.Answer.TrySetResult(answer);
+        return entry is not null && this.Resolve(entry, answer);
     }
 
     /// <summary>
@@ -110,7 +110,41 @@ public sealed class PermissionBroker
             released = this.pending.Where(e => e.Info.SessionId == sessionId).ToList();
         }
 
-        released.ForEach(e => e.Answer.TrySetResult(null));
+        released.ForEach(e => this.Resolve(e, null));
+    }
+
+    /// <summary>True while the session has a request waiting for a keypad answer.</summary>
+    public bool HasPending(string sessionId)
+    {
+        lock (this.gate)
+        {
+            return this.pending.Any(e => e.Info.SessionId == sessionId);
+        }
+    }
+
+    /// <summary>
+    /// Releases the held request that a finished or denied tool call answered: same session, same subagent,
+    /// same tool, and the same input. When no input matches but exactly one request for that tool is held,
+    /// that one is released, since the app may have changed the input. Other held requests stay put.
+    /// </summary>
+    public void ReleaseMatching(string sessionId, string? agentId, string? toolName, JsonNode? toolInput)
+    {
+        Entry? match;
+        lock (this.gate)
+        {
+            var candidates = this.pending
+                .Where(e => e.Info.SessionId == sessionId
+                         && Str(e.Request, "agent_id") == agentId
+                         && e.Info.ToolName == toolName)
+                .ToList();
+            match = candidates.FirstOrDefault(e => JsonNode.DeepEquals(e.Request["tool_input"], toolInput))
+                ?? (candidates.Count == 1 ? candidates[0] : null);
+        }
+
+        if (match is not null)
+        {
+            this.Resolve(match, null);
+        }
     }
 
     /// <summary>Builds the Claude Code hook response for an answer.</summary>
@@ -148,6 +182,14 @@ public sealed class PermissionBroker
             },
         };
         return response.ToJsonString();
+    }
+
+    // Takes the entry off the list before waking its waiter, so HasPending and PendingCount
+    // are already right when the caller looks next.
+    private bool Resolve(Entry entry, PermissionAnswer? answer)
+    {
+        this.Remove(entry);
+        return entry.Answer.TrySetResult(answer);
     }
 
     private void Remove(Entry entry)

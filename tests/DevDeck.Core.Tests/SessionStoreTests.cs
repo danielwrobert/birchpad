@@ -81,9 +81,10 @@ public class SessionStoreTests
         Assert.False(store.Prune(T0.AddSeconds(30)));
         Assert.True(store.Prune(T0.AddMinutes(2)));
 
+        // The session that overflowed gets the freed slot before any newer one.
+        Assert.Equal("c", store.GetBySlot(1)!.SessionId);
         var d = store.Apply(Ev("d", "SessionStart"), T0.AddMinutes(3));
-        Assert.Equal(1, d!.Slot);
-        Assert.Equal(2, store.GetBySlot(2)!.Slot);
+        Assert.Null(d!.Slot);
     }
 
     [Fact]
@@ -119,6 +120,29 @@ public class SessionStoreTests
         store.Apply(Ev("approve-new", "PermissionRequest", "Bash"), T0.AddMinutes(4));
         store.Apply(Ev("approve-old", "PermissionRequest", "Bash"), T0.AddMinutes(3));
         Assert.Equal("approve-old", store.MostUrgent()!.SessionId);
+    }
+
+    [Fact]
+    public void Clear_finished_gives_freed_slots_to_waiting_sessions()
+    {
+        var store = new SessionStore(slotCount: 1);
+        store.Apply(Ev("done", "Stop"), T0);
+        store.Apply(Ev("waiting", "UserPromptSubmit"), T0.AddSeconds(1));
+
+        store.ClearFinished();
+
+        Assert.Equal(1, store.Get("waiting")!.Slot);
+    }
+
+    [Fact]
+    public void Mark_needs_approval_restores_the_waiting_state()
+    {
+        var store = new SessionStore();
+        store.Apply(Ev("a", "PostToolUse", "Read"), T0);
+
+        store.MarkNeedsApproval("a", T0.AddSeconds(1));
+
+        Assert.Equal(SessionState.NeedsApproval, store.Get("a")!.State);
     }
 
     [Fact]

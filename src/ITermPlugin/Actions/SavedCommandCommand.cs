@@ -1,9 +1,10 @@
 namespace Loupedeck.ITermPlugin.Actions
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     using DevDeck.Core.Config;
-    using DevDeck.Core.Mac;
 
     using Loupedeck.Tiles;
 
@@ -17,22 +18,19 @@ namespace Loupedeck.ITermPlugin.Actions
 
         protected override String FilePath => ITermPlugin.CommandsFile;
 
-        protected override String Rebuild()
+        protected override IEnumerable<(String Parameter, String Label, String Group, BitmapColor Color, Func<Boolean> Run)> Load(out String error)
         {
-            var commands = SavedEntries.LoadCommands(this.FilePath, out var error);
+            var commands = SavedEntries.LoadCommands(this.FilePath, out error);
             if (error != null)
             {
-                return error;
+                return null;
             }
 
-            this.ClearEntries();
-            foreach (var command in commands)
+            return commands.Select(c =>
             {
-                var line = command.Command;
-                this.Add(command.Name, command.Name, "Commands", TileRenderer.Idle, () => (this.Plugin as ITermPlugin)?.ITerm is { } iterm && iterm.RunLine(line));
-            }
-
-            return null;
+                var line = c.Command;
+                return (c.Name, c.Name, "Commands", TileRenderer.Idle, (Func<Boolean>)(() => (this.Plugin as ITermPlugin)?.ITerm is { } iterm && iterm.RunLine(line)));
+            }).ToList();
         }
     }
 }

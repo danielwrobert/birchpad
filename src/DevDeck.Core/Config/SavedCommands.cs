@@ -64,7 +64,7 @@ public static class SavedEntries
 
             // Names become key labels and IDs, so blanks and repeats are dropped.
             return loaded
-                .Where(e => !string.IsNullOrWhiteSpace(name(e)) && !string.IsNullOrWhiteSpace(value(e)))
+                .Where(e => e is not null && !string.IsNullOrWhiteSpace(name(e)) && !string.IsNullOrWhiteSpace(value(e)))
                 .GroupBy(e => name(e)!.Trim(), StringComparer.OrdinalIgnoreCase)
                 .Select(g => rename(g.First(), g.Key))
                 .ToList();

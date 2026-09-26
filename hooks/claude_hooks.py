@@ -6,8 +6,15 @@ connection and nothing else. Our entries are recognized by their URL, so running
 this twice changes nothing and --remove leaves every other hook alone.
 
 Usage:
-  claude_hooks.py install [--blocking-permissions] [--port 8766] [--settings PATH]
+  claude_hooks.py install [--blocking-permissions] [--statusline] [--port 8766] [--settings PATH]
   claude_hooks.py remove [--port 8766] [--settings PATH]
+  claude_hooks.py remove-legacy [--settings PATH]
+
+--statusline copies devdeck-statusline.sh next to the settings file and sets it as the
+status line, unless a different status line is already set. remove clears it again.
+
+remove-legacy takes out what Logitech's "Claude Desktop (Beta)" plugin added:
+command hooks that post to localhost:8765, and its status line script.
 """
 
 import argparse
@@ -44,17 +51,31 @@ def base_url(port):
     return f"http://127.0.0.1:{port}/claude/"
 
 
+STATUSLINE_NAME = "devdeck-statusline.sh"
+
+LEGACY_PORT_MARK = "localhost:8765"
+LEGACY_STATUSLINE_MARK = "claude-desktop/statusline.sh"
+
+
+def is_legacy(hook):
+    return hook.get("type") == "command" and LEGACY_PORT_MARK in str(hook.get("command", ""))
+
+
 def is_ours(hook, port):
     return hook.get("type") == "http" and str(hook.get("url", "")).startswith(base_url(port))
 
 
 def remove_ours(hooks, port):
     """Drops our hook handlers, then any matcher group left empty. Returns the count removed."""
+    return remove_matching(hooks, lambda h: is_ours(h, port))
+
+
+def remove_matching(hooks, doomed):
     removed = 0
     for event in list(hooks):
         groups = []
         for group in hooks[event]:
-            kept = [h for h in group.get("hooks", []) if not is_ours(h, port)]
+            kept = [h for h in group.get("hooks", []) if not doomed(h)]
             removed += len(group.get("hooks", [])) - len(kept)
             if kept:
                 groups.append({**group, "hooks": kept})
@@ -82,9 +103,33 @@ def add_ours(hooks, port, blocking_permissions):
     hooks.setdefault("PermissionRequest", []).append(permission)
 
 
+def set_statusline(settings, claude_dir, port):
+    current = str(settings.get("statusLine", {}).get("command", ""))
+    if current and STATUSLINE_NAME not in current:
+        print(f"kept the existing status line: {current}")
+        return
+    script = claude_dir / STATUSLINE_NAME
+    shutil.copy2(Path(__file__).with_name(STATUSLINE_NAME), script)
+    script.chmod(0o755)
+    settings["statusLine"] = {"type": "command", "command": f"'{script}' {port}"}
+    print(f"status line set to {script}")
+
+
+def write_in_place(path, text):
+    """Replaces a file's contents atomically without breaking a symlink or loosening its permissions."""
+    target = path.resolve()
+    tmp = target.with_name(target.name + ".devdeck-tmp")
+    tmp.write_text(text)
+    if target.exists():
+        shutil.copymode(target, tmp)
+    else:
+        tmp.chmod(0o600)
+    tmp.replace(target)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("action", choices=["install", "remove"])
+    parser.add_argument("action", choices=["install", "remove", "remove-legacy"])
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--settings", type=Path, default=Path.home() / ".claude" / "settings.json")
     parser.add_argument(
@@ -92,26 +137,37 @@ def main():
         action="store_true",
         help="hold PermissionRequest hooks for a keypad answer (only once no other plugin does)",
     )
+    parser.add_argument("--statusline", action="store_true", help="install the DevDeck status line")
     args = parser.parse_args()
 
     settings = json.loads(args.settings.read_text()) if args.settings.exists() else {}
     hooks = settings.setdefault("hooks", {})
 
-    backup = args.settings.with_name(f"{args.settings.name}.devdeck-{time.strftime('%Y%m%d-%H%M%S')}")
-    if args.settings.exists():
-        shutil.copy2(args.settings, backup)
+    real = args.settings.resolve()
+    backup = real.with_name(f"{real.name}.devdeck-{time.strftime('%Y%m%d-%H%M%S')}")
+    if real.exists():
+        shutil.copy2(real, backup)
 
-    removed = remove_ours(hooks, args.port)
+    if args.action == "remove-legacy":
+        removed = remove_matching(hooks, is_legacy)
+        if LEGACY_STATUSLINE_MARK in str(settings.get("statusLine", {}).get("command", "")):
+            del settings["statusLine"]
+            print("removed the legacy status line")
+    else:
+        removed = remove_ours(hooks, args.port)
     if args.action == "install":
         add_ours(hooks, args.port, args.blocking_permissions)
+        if args.statusline:
+            set_statusline(settings, args.settings.parent, args.port)
+    elif args.action == "remove" and STATUSLINE_NAME in str(settings.get("statusLine", {}).get("command", "")):
+        del settings["statusLine"]
+        print("removed the DevDeck status line")
     if not hooks:
         del settings["hooks"]
 
-    tmp = args.settings.with_suffix(".json.devdeck-tmp")
-    tmp.write_text(json.dumps(settings, indent=2) + "\n")
-    tmp.replace(args.settings)
+    write_in_place(args.settings, json.dumps(settings, indent=2) + "\n")
 
-    added = 0 if args.action == "remove" else len(STATUS_EVENTS) + 1
+    added = len(STATUS_EVENTS) + 1 if args.action == "install" else 0
     print(f"{args.action}: removed {removed}, added {added}; backup at {backup}")
     return 0
 

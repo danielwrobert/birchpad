@@ -20,10 +20,11 @@ public sealed class DesktopSessionIndexTests : IDisposable
     public void Finds_sessions_by_cli_session_id_and_prefers_origin_cwd()
     {
         this.Write("local_1.json", """{"cliSessionId":"cli-1","title":"Release prep","cwd":"/p/amca/.claude","originCwd":"/p/amca","branch":"claude/x","model":"opus"}""");
+        var index = new DesktopSessionIndex(this.root);
 
-        var found = new DesktopSessionIndex(this.root).Find("claude", "cli-1");
+        index.Refresh();
 
-        Assert.Equal(new SessionMetadata(SessionSource.ClaudeDesktop, "Release prep", "/p/amca", "claude/x", "opus"), found);
+        Assert.Equal(new SessionMetadata(SessionSource.ClaudeDesktop, "Release prep", "/p/amca", "claude/x", "opus"), index.Find("claude", "cli-1"));
     }
 
     [Fact]
@@ -33,26 +34,36 @@ public sealed class DesktopSessionIndexTests : IDisposable
         this.Write("local_noid.json", """{"title":"x"}""");
         this.Write("local_ok.json", """{"cliSessionId":"ok"}""");
         this.Write("scheduled-tasks.json", """{"cliSessionId":"ignored"}""");
-
         var index = new DesktopSessionIndex(this.root);
+
+        index.Refresh();
 
         Assert.NotNull(index.Find("claude", "ok"));
         Assert.Null(index.Find("claude", "ignored"));
     }
 
     [Fact]
-    public void Rescans_on_a_miss_only_after_the_interval()
+    public void A_miss_rescans_in_the_background_at_most_once_per_interval()
     {
         var now = DateTimeOffset.UnixEpoch;
         var index = new DesktopSessionIndex(this.root, () => now) { RescanInterval = TimeSpan.FromSeconds(5) };
-        Assert.Null(index.Find("claude", "late"));
-
         this.Write("local_late.json", """{"cliSessionId":"late"}""");
-        now = now.AddSeconds(1);
+
+        // The miss returns at once and starts a scan; the answer is there on the next lookup.
         Assert.Null(index.Find("claude", "late"));
+        index.PendingScan!.Wait();
+        Assert.NotNull(index.Find("claude", "late"));
+
+        this.Write("local_later.json", """{"cliSessionId":"later"}""");
+        var scan = index.PendingScan;
+        now = now.AddSeconds(1);
+        Assert.Null(index.Find("claude", "later"));
+        Assert.Same(scan, index.PendingScan);
 
         now = now.AddSeconds(5);
-        Assert.NotNull(index.Find("claude", "late"));
+        Assert.Null(index.Find("claude", "later"));
+        index.PendingScan!.Wait();
+        Assert.NotNull(index.Find("claude", "later"));
     }
 
     [Fact]
@@ -60,12 +71,18 @@ public sealed class DesktopSessionIndexTests : IDisposable
     {
         this.Write("local_1.json", """{"cliSessionId":"same-id"}""");
 
-        Assert.Null(new DesktopSessionIndex(this.root).Find("codex", "same-id"));
+        var index = new DesktopSessionIndex(this.root);
+        index.Refresh();
+
+        Assert.Null(index.Find("codex", "same-id"));
     }
 
     [Fact]
     public void Missing_root_finds_nothing()
     {
-        Assert.Null(new DesktopSessionIndex(Path.Combine(this.root, "missing")).Find("claude", "x"));
+        var index = new DesktopSessionIndex(Path.Combine(this.root, "missing"));
+        index.Refresh();
+
+        Assert.Null(index.Find("claude", "x"));
     }
 }

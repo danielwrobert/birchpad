@@ -31,7 +31,7 @@ public sealed class SavedEntriesTests : IDisposable
     {
         Directory.CreateDirectory(this.dir);
         var file = Path.Combine(this.dir, "commands.json");
-        File.WriteAllText(file, """[{"name":"up","command":"ddev start"},{"name":"UP","command":"other"},{"name":"","command":"x"},{"name":"blank"}]""");
+        File.WriteAllText(file, """[{"name":"up","command":"ddev start"},null,{"name":"UP","command":"other"},{"name":"","command":"x"},{"name":"blank"}]""");
 
         var commands = SavedEntries.LoadCommands(file, out _);
 

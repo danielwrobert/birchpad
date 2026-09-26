@@ -123,6 +123,10 @@ public sealed class SessionStore
                 .ToList();
             doomed.ForEach(id => this.sessions.Remove(id));
             removed = doomed.Count > 0;
+            if (removed)
+            {
+                this.FillFreedSlots();
+            }
         }
 
         if (removed)
@@ -145,6 +149,10 @@ public sealed class SessionStore
                 .ToList();
             doomed.ForEach(id => this.sessions.Remove(id));
             count = doomed.Count;
+            if (count > 0)
+            {
+                this.FillFreedSlots();
+            }
         }
 
         if (count > 0)
@@ -209,6 +217,36 @@ public sealed class SessionStore
                 .Where(r => r.State is SessionState.Working or SessionState.NeedsApproval or SessionState.NeedsInput)
                 .OrderByDescending(r => r.LastEventAt)
                 .FirstOrDefault()?.ToSnapshot();
+        }
+    }
+
+    /// <summary>Marks a session as waiting for approval, for when a held request outlives a later event.</summary>
+    public void MarkNeedsApproval(string sessionId, DateTimeOffset now)
+    {
+        lock (this.gate)
+        {
+            if (!this.sessions.TryGetValue(sessionId, out var record) || record.State == SessionState.NeedsApproval)
+            {
+                return;
+            }
+
+            record.State = SessionState.NeedsApproval;
+            record.StateSince = now;
+        }
+
+        this.Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    // Sessions that arrived while every slot was taken get freed slots, oldest first.
+    private void FillFreedSlots()
+    {
+        foreach (var record in this.sessions.Values.Where(r => r.Slot is null).OrderBy(r => r.CreatedAt))
+        {
+            record.Slot = this.FreeSlot();
+            if (record.Slot is null)
+            {
+                return;
+            }
         }
     }
 

@@ -37,13 +37,30 @@ public class CodexTests
         var index = new CodexThreadIndex(() => { calls++; return [new CodexThread("t1", "Fix CSV", "/p", null)]; }, () => now);
 
         Assert.Null(index.Find("claude", "t1"));
+        Assert.Null(index.Find("codex", "t1"));
+        index.PendingScan!.Wait();
         Assert.Equal(new SessionMetadata(SessionSource.Codex, "Fix CSV", "/p", null, null), index.Find("codex", "t1"));
+
         Assert.Null(index.Find("codex", "t2"));
         Assert.Equal(1, calls);
 
         now = now.AddMinutes(1);
         Assert.Null(index.Find("codex", "t2"));
+        index.PendingScan!.Wait();
         Assert.Equal(2, calls);
+    }
+
+    [Fact]
+    public void A_failed_thread_listing_keeps_the_old_names()
+    {
+        var fail = false;
+        var index = new CodexThreadIndex(() => fail ? throw new InvalidOperationException("offline") : [new CodexThread("t1", "Fix CSV", "/p", null)]);
+        index.Refresh();
+
+        fail = true;
+        index.Refresh();
+
+        Assert.Equal("Fix CSV", index.Find("codex", "t1")!.Title);
     }
 
     [Fact]

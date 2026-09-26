@@ -1,7 +1,9 @@
 namespace Loupedeck.Tiles
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
 
     using DevDeck.Core.Config;
     using DevDeck.Core.Mac;
@@ -24,22 +26,19 @@ namespace Loupedeck.Tiles
 
         protected override String FilePath => PromptsFile;
 
-        protected override String Rebuild()
+        protected override IEnumerable<(String Parameter, String Label, String Group, BitmapColor Color, Func<Boolean> Run)> Load(out String error)
         {
-            var prompts = SavedEntries.LoadPrompts(this.FilePath, out var error);
+            var prompts = SavedEntries.LoadPrompts(this.FilePath, out error);
             if (error != null)
             {
-                return error;
+                return null;
             }
 
-            this.ClearEntries();
-            foreach (var prompt in prompts)
+            return prompts.Select(p =>
             {
-                var text = prompt.Text;
-                this.Add(prompt.Name, prompt.Name, "Prompts", TileRenderer.Question, () => this.mac.PasteInto(this.BundleId, text, submit: true));
-            }
-
-            return null;
+                var text = p.Text;
+                return (p.Name, p.Name, "Prompts", TileRenderer.Question, (Func<Boolean>)(() => this.mac.PasteInto(this.BundleId, text, submit: true)));
+            }).ToList();
         }
     }
 }

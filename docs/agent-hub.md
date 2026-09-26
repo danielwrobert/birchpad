@@ -32,6 +32,12 @@ The listener binds `127.0.0.1:8766` and `localhost:8766` only.
 - `GET /sessions`: what the hub knows, as JSON.
 - `GET /health`: returns `ok`.
 
+POST routes accept only `Content-Type: application/json` with no `Origin` header, and answer anything else with 403.
+A web page can send a simple cross-site POST to localhost, but not with a JSON content type, and a browser always adds `Origin`.
+
+A held permission request is released without an answer when its own tool call finishes or is denied (same session, subagent, tool, and input), or when the turn ends.
+Another subagent's tool finishing leaves it held and the tile on "Approve?".
+
 ## Hooks
 
 `hooks/claude_hooks.py install` adds native HTTP hooks for 11 events to `~/.claude/settings.json`.

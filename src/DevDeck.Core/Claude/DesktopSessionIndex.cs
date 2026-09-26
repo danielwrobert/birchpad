@@ -28,6 +28,10 @@ public sealed class DesktopSessionIndex : ISessionMetadataSource
     /// <summary>The shortest time between rescans triggered by an unknown session.</summary>
     public TimeSpan RescanInterval { get; init; } = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// Returns cached metadata. A miss starts a background rescan (at most once per <see cref="RescanInterval"/>)
+    /// and returns null, so callers holding locks never wait on disk.
+    /// </summary>
     public SessionMetadata? Find(string agent, string sessionId)
     {
         if (agent != "claude")
@@ -42,16 +46,27 @@ public sealed class DesktopSessionIndex : ISessionMetadataSource
                 return found;
             }
 
-            // A new Desktop session writes its file around the time of its first hook, so rescan on a miss.
             var now = this.clock();
-            if (now - this.lastScan < this.RescanInterval)
+            if (now - this.lastScan >= this.RescanInterval && (this.PendingScan is null || this.PendingScan.IsCompleted))
             {
-                return null;
+                this.lastScan = now;
+                this.PendingScan = Task.Run(this.Refresh);
             }
 
-            this.lastScan = now;
-            this.byCliSessionId = Scan(this.root);
-            return this.byCliSessionId.GetValueOrDefault(sessionId);
+            return null;
+        }
+    }
+
+    /// <summary>The background rescan started by the last miss, for tests.</summary>
+    internal Task? PendingScan { get; private set; }
+
+    /// <summary>Rescans the session files now, on the calling thread.</summary>
+    public void Refresh()
+    {
+        var map = Scan(this.root);
+        lock (this.gate)
+        {
+            this.byCliSessionId = map;
         }
     }
 
