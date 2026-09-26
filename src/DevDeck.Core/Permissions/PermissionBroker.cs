@@ -48,7 +48,7 @@ public sealed class PermissionBroker
     /// Waits for an answer to one PermissionRequest hook body.
     /// Returns the hook response JSON, or null when nobody answered.
     /// </summary>
-    public async Task<string?> WaitAsync(string sessionId, JsonObject request, TimeSpan timeout, DateTimeOffset now, CancellationToken cancel = default)
+    public async Task<string?> WaitAsync(string sessionId, JsonObject request, TimeSpan timeout, DateTimeOffset now, CancellationToken cancel = default, string agent = "claude")
     {
         var entry = new Entry(
             new PendingPermission(Guid.NewGuid().ToString("N"), sessionId, Str(request, "tool_name"), now),
@@ -62,7 +62,7 @@ public sealed class PermissionBroker
         try
         {
             var answer = await entry.Answer.Task.WaitAsync(timeout, cancel).ConfigureAwait(false);
-            return answer is null ? null : BuildResponse(answer.Value, request);
+            return answer is null ? null : BuildResponse(answer.Value, request, agent);
         }
         catch (Exception ex) when (ex is TimeoutException or OperationCanceledException)
         {
@@ -114,7 +114,7 @@ public sealed class PermissionBroker
     }
 
     /// <summary>Builds the Claude Code hook response for an answer.</summary>
-    public static string BuildResponse(PermissionAnswer answer, JsonObject request)
+    public static string BuildResponse(PermissionAnswer answer, JsonObject request, string agent = "claude")
     {
         var decision = new JsonObject();
         switch (answer)
@@ -126,7 +126,8 @@ public sealed class PermissionBroker
                 decision["behavior"] = "allow";
 
                 // Echo Claude's own suggestion, so "always" means what the dialog's "always" would.
-                if (request["permission_suggestions"] is JsonArray suggestions && suggestions.Count > 0)
+                // Codex fails closed on updatedPermissions, so there "always" is a plain allow.
+                if (agent == "claude" && request["permission_suggestions"] is JsonArray suggestions && suggestions.Count > 0)
                 {
                     decision["updatedPermissions"] = suggestions.DeepClone();
                 }

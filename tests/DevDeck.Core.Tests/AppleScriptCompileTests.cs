@@ -27,6 +27,10 @@ public sealed class AppleScriptCompileTests : IDisposable
         { "write control", ITermController.WriteScript(ITermController.ShiftTab, newline: false) },
         { "write mixed", ITermController.WriteScript("a\u0003b\"c", newline: false) },
         { "split", ITermController.SplitScript(vertical: true, "claude", "/Users/me/it's here") },
+        { "paste submit", MacAutomation.PasteScript(MacAutomation.CodexBundleId, "Review \"this\"", submit: true) },
+        { "command key", MacAutomation.CommandKeyScript(MacAutomation.ClaudeBundleId, 'b', shift: false) },
+        { "command shift key", MacAutomation.CommandKeyScript(MacAutomation.ClaudeBundleId, 'd', shift: true) },
+        { "paste only", MacAutomation.PasteScript(MacAutomation.ClaudeBundleId, "Explain", submit: false) },
     };
 
     [Theory]

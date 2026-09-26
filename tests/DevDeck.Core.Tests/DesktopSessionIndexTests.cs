@@ -21,7 +21,7 @@ public sealed class DesktopSessionIndexTests : IDisposable
     {
         this.Write("local_1.json", """{"cliSessionId":"cli-1","title":"Release prep","cwd":"/p/amca/.claude","originCwd":"/p/amca","branch":"claude/x","model":"opus"}""");
 
-        var found = new DesktopSessionIndex(this.root).Find("cli-1");
+        var found = new DesktopSessionIndex(this.root).Find("claude", "cli-1");
 
         Assert.Equal(new SessionMetadata(SessionSource.ClaudeDesktop, "Release prep", "/p/amca", "claude/x", "opus"), found);
     }
@@ -36,8 +36,8 @@ public sealed class DesktopSessionIndexTests : IDisposable
 
         var index = new DesktopSessionIndex(this.root);
 
-        Assert.NotNull(index.Find("ok"));
-        Assert.Null(index.Find("ignored"));
+        Assert.NotNull(index.Find("claude", "ok"));
+        Assert.Null(index.Find("claude", "ignored"));
     }
 
     [Fact]
@@ -45,19 +45,27 @@ public sealed class DesktopSessionIndexTests : IDisposable
     {
         var now = DateTimeOffset.UnixEpoch;
         var index = new DesktopSessionIndex(this.root, () => now) { RescanInterval = TimeSpan.FromSeconds(5) };
-        Assert.Null(index.Find("late"));
+        Assert.Null(index.Find("claude", "late"));
 
         this.Write("local_late.json", """{"cliSessionId":"late"}""");
         now = now.AddSeconds(1);
-        Assert.Null(index.Find("late"));
+        Assert.Null(index.Find("claude", "late"));
 
         now = now.AddSeconds(5);
-        Assert.NotNull(index.Find("late"));
+        Assert.NotNull(index.Find("claude", "late"));
+    }
+
+    [Fact]
+    public void Other_agents_are_never_desktop_sessions()
+    {
+        this.Write("local_1.json", """{"cliSessionId":"same-id"}""");
+
+        Assert.Null(new DesktopSessionIndex(this.root).Find("codex", "same-id"));
     }
 
     [Fact]
     public void Missing_root_finds_nothing()
     {
-        Assert.Null(new DesktopSessionIndex(Path.Combine(this.root, "missing")).Find("x"));
+        Assert.Null(new DesktopSessionIndex(Path.Combine(this.root, "missing")).Find("claude", "x"));
     }
 }

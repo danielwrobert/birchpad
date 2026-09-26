@@ -15,7 +15,7 @@ public sealed class HookListener : IDisposable
     // Events after which a held permission request can no longer be answered from the keypad.
     private static readonly HashSet<string> MovedOnEvents = new(StringComparer.Ordinal)
     {
-        "PostToolUse", "PostToolUseFailure", "PermissionDenied", "UserPromptSubmit", "Stop", "StopFailure", "SessionEnd",
+        "PostToolUse", "PostToolUseFailure", "PermissionDenied", "UserPromptSubmit", "Stop", "StopFailure", "SessionEnd", "Interrupt",
     };
 
     private readonly HttpListener listener = new();
@@ -66,7 +66,15 @@ public sealed class HookListener : IDisposable
     public void Dispose()
     {
         this.Stop();
-        this.listener.Close();
+        try
+        {
+            this.listener.Close();
+        }
+        catch (HttpListenerException)
+        {
+            // Closing a listener whose Start failed (port taken) throws; there is nothing to release.
+        }
+
         this.stopping?.Dispose();
     }
 
@@ -124,8 +132,10 @@ public sealed class HookListener : IDisposable
 
             var response = path switch
             {
-                "/claude/hook" => this.OnClaudeHook(body),
-                "/claude/permission" => await this.OnClaudePermission(body, cancel).ConfigureAwait(false),
+                "/claude/hook" => this.OnHook(body, "claude"),
+                "/claude/permission" => await this.OnPermission(body, "claude", cancel).ConfigureAwait(false),
+                "/codex/hook" => this.OnHook(body, "codex"),
+                "/codex/permission" => await this.OnPermission(body, "codex", cancel).ConfigureAwait(false),
                 "/claude/statusline" => this.OnClaudeStatusLine(body),
                 _ => (Status: 404, Body: (string?)null),
             };
@@ -145,9 +155,9 @@ public sealed class HookListener : IDisposable
         }
     }
 
-    private (int Status, string? Body) OnClaudeHook(string body)
+    private (int Status, string? Body) OnHook(string body, string agent)
     {
-        var e = HookEvent.ParseClaude(body);
+        var e = HookEvent.Parse(body, agent);
         if (e is null)
         {
             return (400, null);
@@ -162,16 +172,16 @@ public sealed class HookListener : IDisposable
         return (200, null);
     }
 
-    private async Task<(int Status, string? Body)> OnClaudePermission(string body, CancellationToken cancel)
+    private async Task<(int Status, string? Body)> OnPermission(string body, string agent, CancellationToken cancel)
     {
-        var e = HookEvent.ParseClaude(body);
+        var e = HookEvent.Parse(body, agent);
         if (e?.Raw is null)
         {
             return (400, null);
         }
 
         this.store.Apply(e, this.clock());
-        var answer = await this.broker.WaitAsync(e.SessionId, e.Raw, this.PermissionTimeout, this.clock(), cancel).ConfigureAwait(false);
+        var answer = await this.broker.WaitAsync(e.SessionId, e.Raw, this.PermissionTimeout, this.clock(), cancel, agent).ConfigureAwait(false);
         return (200, answer);
     }
 

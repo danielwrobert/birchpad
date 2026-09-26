@@ -19,7 +19,13 @@ public sealed record HookEvent(
     JsonObject? Raw = null)
 {
     /// <summary>Parses a Claude Code hook body. Returns null when it has no session ID or event name.</summary>
-    public static HookEvent? ParseClaude(string json)
+    public static HookEvent? ParseClaude(string json) => Parse(json, "claude");
+
+    /// <summary>
+    /// Parses a hook body from any agent that uses Claude Code's field names; Codex does.
+    /// Returns null when it has no session ID or event name.
+    /// </summary>
+    public static HookEvent? Parse(string json, string agent)
     {
         JsonObject? obj;
         try
@@ -44,7 +50,7 @@ public sealed record HookEvent(
         }
 
         return new HookEvent(
-            Agent: "claude",
+            Agent: agent,
             SessionId: sessionId,
             EventName: eventName,
             Cwd: Str(obj, "cwd"),

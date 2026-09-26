@@ -3,10 +3,17 @@ namespace DevDeck.Core.Sessions;
 /// <summary>Extra facts about a session that hooks do not carry, such as a Claude Desktop title.</summary>
 public sealed record SessionMetadata(SessionSource Source, string? Title, string? Cwd, string? Branch, string? Model);
 
-/// <summary>Looks up metadata by agent session ID. Returns null when the session is unknown.</summary>
+/// <summary>Looks up metadata by agent and session ID. Returns null when the session is unknown.</summary>
 public interface ISessionMetadataSource
 {
-    SessionMetadata? Find(string sessionId);
+    SessionMetadata? Find(string agent, string sessionId);
+}
+
+/// <summary>Asks each source in turn and returns the first answer.</summary>
+public sealed class CompositeMetadataSource(params ISessionMetadataSource[] sources) : ISessionMetadataSource
+{
+    public SessionMetadata? Find(string agent, string sessionId) =>
+        sources.Select(s => s.Find(agent, sessionId)).FirstOrDefault(m => m is not null);
 }
 
 /// <summary>
@@ -60,7 +67,9 @@ public sealed class SessionStore
             }
 
             record.LastEventAt = now;
-            record.Cwd = e.Cwd ?? record.Cwd;
+            // Hooks report the shell's current folder, which moves as the agent runs cd.
+            // The first one is where the session started, and what iTerm reports for its tab.
+            record.Cwd ??= e.Cwd;
             record.PermissionMode = e.PermissionMode ?? record.PermissionMode;
             record.Model = e.Model ?? record.Model;
             record.Title = e.SessionTitle ?? record.Title;
@@ -220,12 +229,13 @@ public sealed class SessionStore
 
     private void Enrich(Record record)
     {
-        if (this.metadata is null || record.Source == SessionSource.ClaudeDesktop)
+        // Desktop sessions and named Codex threads are settled; others are looked up again on each event.
+        if (record.Source == SessionSource.ClaudeDesktop || (record.Source == SessionSource.Codex && record.Title is not null))
         {
             return;
         }
 
-        var found = this.metadata.Find(record.SessionId);
+        var found = this.metadata?.Find(record.Agent, record.SessionId);
         if (found is null)
         {
             record.Source = record.Agent == "codex" ? SessionSource.Codex : SessionSource.ClaudeCli;

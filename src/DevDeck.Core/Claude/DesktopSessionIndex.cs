@@ -28,8 +28,13 @@ public sealed class DesktopSessionIndex : ISessionMetadataSource
     /// <summary>The shortest time between rescans triggered by an unknown session.</summary>
     public TimeSpan RescanInterval { get; init; } = TimeSpan.FromSeconds(5);
 
-    public SessionMetadata? Find(string sessionId)
+    public SessionMetadata? Find(string agent, string sessionId)
     {
+        if (agent != "claude")
+        {
+            return null;
+        }
+
         lock (this.gate)
         {
             if (this.byCliSessionId.TryGetValue(sessionId, out var found))

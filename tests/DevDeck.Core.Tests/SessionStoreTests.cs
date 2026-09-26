@@ -42,6 +42,17 @@ public class SessionStoreTests
     }
 
     [Fact]
+    public void The_first_folder_sticks_when_the_agent_changes_directory()
+    {
+        var store = new SessionStore();
+        store.Apply(Ev("a", "SessionStart", cwd: "/Users/me/Projects/logi"), T0);
+
+        var after = store.Apply(Ev("a", "PostToolUse", "Bash", cwd: "/Users/me/Projects/logi/hooks"), T0);
+
+        Assert.Equal("logi", after!.DisplayName);
+    }
+
+    [Fact]
     public void Unknown_events_keep_state_and_state_since()
     {
         var store = new SessionStore();
@@ -156,6 +167,6 @@ public class SessionStoreTests
 
     private sealed class FakeMetadata(Dictionary<string, SessionMetadata> map) : ISessionMetadataSource
     {
-        public SessionMetadata? Find(string sessionId) => map.GetValueOrDefault(sessionId);
+        public SessionMetadata? Find(string agent, string sessionId) => map.GetValueOrDefault(sessionId);
     }
 }

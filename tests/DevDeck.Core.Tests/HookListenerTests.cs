@@ -110,6 +110,19 @@ public sealed class HookListenerTests : IDisposable
     }
 
     [Fact]
+    public async Task Codex_hooks_create_codex_sessions()
+    {
+        await this.Post("/codex/hook", """{"session_id":"t1","hook_event_name":"UserPromptSubmit","cwd":"/tmp/site","model":"gpt-5.5"}""");
+        await this.Post("/codex/hook", """{"session_id":"t1","hook_event_name":"Interrupt","turn_id":"x"}""");
+
+        var session = this.store.Get("t1")!;
+        Assert.Equal("codex", session.Agent);
+        Assert.Equal(SessionSource.Codex, session.Source);
+        Assert.Equal(SessionState.Done, session.State);
+        Assert.Equal("gpt-5.5", session.Model);
+    }
+
+    [Fact]
     public void A_taken_port_fails_to_start()
     {
         using var second = new HookListener(this.listener.Port, this.store, this.broker);

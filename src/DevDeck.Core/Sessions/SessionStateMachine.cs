@@ -17,6 +17,9 @@ public static class SessionStateMachine
         "PermissionRequest" => SessionState.NeedsApproval,
         "Notification" => FromNotification(current, e.NotificationType),
         "Stop" => SessionState.Done,
+
+        // Codex runs Interrupt when the user stops a turn; the session then waits for input.
+        "Interrupt" => SessionState.Done,
         "StopFailure" => SessionState.Failed,
         "SessionEnd" => SessionState.Ended,
         _ => null,

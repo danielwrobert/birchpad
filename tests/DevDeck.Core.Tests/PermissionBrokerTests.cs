@@ -52,6 +52,15 @@ public class PermissionBrokerTests
     }
 
     [Fact]
+    public void Always_is_a_plain_allow_for_codex()
+    {
+        var decision = JsonNode.Parse(PermissionBroker.BuildResponse(PermissionAnswer.AllowAlways, Request(withSuggestion: true), "codex"))!["hookSpecificOutput"]!["decision"]!;
+
+        Assert.Equal("allow", decision["behavior"]!.GetValue<string>());
+        Assert.Null(decision["updatedPermissions"]);
+    }
+
+    [Fact]
     public void Deny_includes_a_message()
     {
         var decision = JsonNode.Parse(PermissionBroker.BuildResponse(PermissionAnswer.Deny, Request()))!["hookSpecificOutput"]!["decision"]!;

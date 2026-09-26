@@ -17,6 +17,9 @@ public sealed class MacAutomation
 
     public const string ItermBundleId = "com.googlecode.iterm2";
 
+    /// <summary>The ChatGPT desktop app, which hosts Codex.</summary>
+    public const string CodexBundleId = "com.openai.codex";
+
     /// <summary>Opens a URL or custom-scheme link such as <c>claude://</c>.</summary>
     public bool OpenUrl(string url) => this.Run("/usr/bin/open", [url], TimeSpan.FromSeconds(5)).ExitCode == 0;
 
@@ -57,6 +60,42 @@ public sealed class MacAutomation
             end tell
             """;
     }
+
+    /// <summary>
+    /// Brings an app forward and pastes <paramref name="text"/> into its focused field, then presses Return
+    /// when <paramref name="submit"/> is set. The clipboard's text is put back afterwards.
+    /// </summary>
+    public bool PasteInto(string bundleId, string text, bool submit) =>
+        this.AppleScript(PasteScript(bundleId, text, submit), TimeSpan.FromSeconds(15)) is not null;
+
+    internal static string PasteScript(string bundleId, string text, bool submit) => $$"""
+        set previous to ""
+        try
+          set previous to the clipboard as text
+        end try
+        set the clipboard to {{Quote(text)}}
+        tell application id {{Quote(bundleId)}} to activate
+        delay 0.3
+        tell application "System Events"
+          keystroke "v" using command down
+          {{(submit ? "delay 0.2\n      key code 36" : string.Empty)}}
+        end tell
+        delay 0.2
+        set the clipboard to previous
+        """;
+
+    /// <summary>
+    /// Brings an app forward and presses a key with Command held, plus Shift when <paramref name="shift"/> is set.
+    /// Used for menu items whose name changes with state, such as "Hide Sidebar" and "Show Sidebar".
+    /// </summary>
+    public bool CommandKey(string bundleId, char key, bool shift = false) =>
+        this.AppleScript(CommandKeyScript(bundleId, key, shift)) is not null;
+
+    internal static string CommandKeyScript(string bundleId, char key, bool shift) => $$"""
+        tell application id {{Quote(bundleId)}} to activate
+        delay 0.2
+        tell application "System Events" to keystroke {{Quote(key.ToString())}} using {{(shift ? "{command down, shift down}" : "command down")}}
+        """;
 
     /// <summary>Opens a Claude Desktop Code session by its Claude Code session ID.</summary>
     public bool OpenClaudeDesktopSession(string sessionId) =>

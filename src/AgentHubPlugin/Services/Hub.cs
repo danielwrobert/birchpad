@@ -8,6 +8,7 @@ namespace Loupedeck.AgentHubPlugin.Services
 
     using DevDeck.Core.Claude;
     using DevDeck.Core.Cloud;
+    using DevDeck.Core.Codex;
     using DevDeck.Core.Http;
     using DevDeck.Core.Mac;
     using DevDeck.Core.Permissions;
@@ -25,7 +26,12 @@ namespace Loupedeck.AgentHubPlugin.Services
 
         public Hub(Int32 port, TimeSpan cloudInterval)
         {
-            this.Sessions = new SessionStore(SlotCount, new DesktopSessionIndex());
+            var codex = CodexAppServer.FindCodex();
+            this.Codex = codex == null ? null : new CodexAppServer(codex);
+            ISessionMetadataSource metadata = this.Codex == null
+                ? new DesktopSessionIndex()
+                : new CompositeMetadataSource(new DesktopSessionIndex(), new CodexThreadIndex(() => this.Codex.ListThreads()));
+            this.Sessions = new SessionStore(SlotCount, metadata);
             this.Permissions = new PermissionBroker();
             this.Mac = new MacAutomation(message => PluginLog.Warning(message));
             this.Listener = new HookListener(port, this.Sessions, this.Permissions, log: message => PluginLog.Warning(message));
@@ -66,6 +72,12 @@ namespace Loupedeck.AgentHubPlugin.Services
         // Null when the claude CLI is missing.
         public CloudCache Cloud { get; }
 
+        // Null when the codex CLI is missing.
+        public CodexAppServer Codex { get; }
+
+        // Latest Codex rate limits, refreshed every 5 minutes. Null until the first read.
+        public CodexUsage CodexUsage { get; private set; }
+
         // Claude Desktop scheduled tasks, reread every minute.
         public IReadOnlyList<ScheduledTask> LocalRoutines { get; private set; }
 
@@ -103,6 +115,11 @@ namespace Loupedeck.AgentHubPlugin.Services
                     this.LocalRoutines = ScheduledTaskReader.Read();
                 }
 
+                if (this.Codex != null && this.ticks % 300 == 5)
+                {
+                    this.RefreshCodexUsage();
+                }
+
                 if (!this.Sessions.Prune(DateTimeOffset.UtcNow) && this.ticks % 10 == 0)
                 {
                     // Elapsed times on tiles are shown in whole minutes, so a redraw every 10 seconds is enough.
@@ -112,6 +129,17 @@ namespace Loupedeck.AgentHubPlugin.Services
             catch (Exception ex)
             {
                 PluginLog.Error(ex, "Agent Hub tick failed");
+            }
+        }
+
+        // Reads Codex usage now; the key calls this on press. Runs on the timer or a worker thread.
+        public void RefreshCodexUsage()
+        {
+            var usage = this.Codex?.ReadUsage(DateTimeOffset.UtcNow);
+            if (usage != null)
+            {
+                this.CodexUsage = usage;
+                this.RaiseChanged();
             }
         }
 
