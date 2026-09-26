@@ -1,0 +1,413 @@
+Apple > About This Mac
+Apple > System Information
+Apple > System Settings…, 2 updates
+Apple > App Store
+Apple > Recent Items > Applications
+Apple > Recent Items > Archive Utility
+Apple > Recent Items > Show “Archive Utility” in Finder
+Apple > Recent Items > Caffeine
+Apple > Recent Items > Show “Caffeine” in Finder
+Apple > Recent Items > ChatGPT
+Apple > Recent Items > Show “ChatGPT” in Finder
+Apple > Recent Items > Claude
+Apple > Recent Items > Show “Claude” in Finder
+Apple > Recent Items > Firefox
+Apple > Recent Items > Show “Firefox” in Finder
+Apple > Recent Items > Logi Options+
+Apple > Recent Items > Show “Logi Options+” in Finder
+Apple > Recent Items > Privileges
+Apple > Recent Items > Show “Privileges” in Finder
+Apple > Recent Items > Slack
+Apple > Recent Items > Show “Slack” in Finder
+Apple > Recent Items > Sublime Text
+Apple > Recent Items > Show “Sublime Text” in Finder
+Apple > Recent Items > System Settings
+Apple > Recent Items > Show “System Settings” in Finder
+Apple > Recent Items > Documents
+Apple > Recent Items > CIO100LeadershipLive_Boston_Color-White.svg
+Apple > Recent Items > Show “CIO100LeadershipLive_Boston_Color-White.svg” in Finder
+Apple > Recent Items > Governing AI-Assisted Delivery.html
+Apple > Recent Items > Show “Governing AI-Assisted Delivery.html” in Finder
+Apple > Recent Items > Kanopi Studios Check one important journey.pdf
+Apple > Recent Items > Show “Kanopi Studios Check one important journey.pdf” in Finder
+Apple > Recent Items > storyboard.md
+Apple > Recent Items > Show “storyboard.md” in Finder
+Apple > Recent Items > tutorial.mp4
+Apple > Recent Items > Show “tutorial.mp4” in Finder
+Apple > Recent Items > tutorial.mp4
+Apple > Recent Items > Show “tutorial.mp4” in Finder
+Apple > Recent Items > Webinar · Website 1536×863@2x(2).png
+Apple > Recent Items > Show “Webinar · Website 1536×863@2x(2).png” in Finder
+Apple > Recent Items > Webinar · Website 1536×863@2x(3).png
+Apple > Recent Items > Show “Webinar · Website 1536×863@2x(3).png” in Finder
+Apple > Recent Items > Webinar · Website 1536×863@2x(4).png
+Apple > Recent Items > Show “Webinar · Website 1536×863@2x(4).png” in Finder
+Apple > Recent Items > Welcome To EFTPS - Payments.pdf
+Apple > Recent Items > Show “Welcome To EFTPS - Payments.pdf” in Finder
+Apple > Recent Items > Servers
+Apple > Recent Items > Macintosh HD
+Apple > Recent Items > OrbStack
+Apple > Recent Items > Clear Menu
+Apple > Force Quit…	⌥⌘⎋
+Apple > Force Quit iTerm2	⌥⇧⌘⎋
+Apple > Sleep
+Apple > Restart…
+Apple > Restart
+Apple > Shut Down…
+Apple > Shut Down
+Apple > Lock Screen	⌃⌘Q
+Apple > Log Out Jim Birch…	⇧⌘Q
+Apple > Log Out Jim Birch	⌥⇧⌘Q
+iTerm2 > About iTerm2
+iTerm2 > Show Tip of the Day
+iTerm2 > Companion Device Settings
+iTerm2 > 1 Alert Suppressed (4 hrs ago)…
+iTerm2 > Check for Updates…
+iTerm2 > Toggle Debug Logging
+iTerm2 > Save Retrospective Debug Logs
+iTerm2 > Copy Performance Stats
+iTerm2 > Settings…	⌘,
+iTerm2 > Services > Activity Monitor
+iTerm2 > Services > Allocations & Leaks
+iTerm2 > Services > File Activity
+iTerm2 > Services > System Trace
+iTerm2 > Services > Ask Claude
+iTerm2 > Services > New Claude Code Session Here
+iTerm2 > Services > Send to Claude
+iTerm2 > Services > Services Settings…
+iTerm2 > Hide iTerm2	⌘H
+iTerm2 > Hide Others	⌥⌘H
+iTerm2 > Show All
+iTerm2 > Secure Keyboard Entry	⌥⌘S
+iTerm2 > Make iTerm2 Default Term	⌃⇧⌘\
+iTerm2 > Make Terminal Default Term	⌃⌥⇧⌘\
+iTerm2 > Install Shell Integration
+iTerm2 > Reinstall Claude Code Integration
+iTerm2 > Uninstall Claude Code Integration
+iTerm2 > Quit iTerm2	⌘Q
+iTerm2 > Quit and Keep Windows	⌥⌘Q
+Shell > New Window	⌘N
+Shell > New Window with Current Profile	⌥⇧⌘N
+Shell > New Tab	⌘T
+Shell > New Tab Next to Current Tab	⌥⌘T
+Shell > New Tab with Current Profile	⌥⇧⌘T
+Shell > Duplicate Window
+Shell > Duplicate Tab
+Shell > Split Horizontally with Current Profile	⇧⌘D
+Shell > Split Vertically with Current Profile	⌘D
+Shell > Split Horizontally…	⌥⇧⌘H
+Shell > Split Vertically…	⌥⇧⌘V
+Shell > Save Contents…
+Shell > Save Selected Text…	⌘S
+Shell > Close	⌘W
+Shell > Close Terminal Window	⇧⌘W
+Shell > Close All Panes in Tab	⌥⌘W
+Shell > Undo Close	⇧⌘T
+Shell > Archives > Save Archive of Current Session…
+Shell > Archives > Restore Archive…
+Shell > Workgroups > Claude Code
+Shell > Workgroups > Exit Workgroup
+Shell > Broadcast Input > Send Input to Current Session Only	⌥⇧⌘I
+Shell > Broadcast Input > Broadcast Input to All Panes in All Tabs	⇧⌘I
+Shell > Broadcast Input > Broadcast Input to All Panes in Current Tab	⌥⌘I
+Shell > Broadcast Input > Toggle Broadcast Input to Current Session	⌃⌥⇧⌘I
+Shell > Broadcast Input > Show Background Pattern Indicator
+Shell > Broadcast Input > Current Session is Broadcast Source
+Shell > Toggle Buffer Input
+Shell > tmux > Detach	⌃⇧⌘D
+Shell > tmux > Force Detach
+Shell > tmux > New Tmux Window	⌃⇧⌘N
+Shell > tmux > New Tmux Tab	⌃⇧⌘T
+Shell > tmux > Pause Pane	⌃⇧⌘P
+Shell > tmux > Dashboard	⌃⇧⌘
+Shell > ssh > Disconnect
+Shell > ssh > Download Files…
+Shell > ssh > Remote host can control iTerm2
+Shell > Page Setup...	⇧⌘P
+Shell > Print > Screen	⌘P
+Shell > Print > Selection	⌥⌘P
+Shell > Print > Buffer	⌥⇧⌘P
+Edit > Undo Close Session	⌘Z
+Edit > Redo	⇧⌘Z
+Edit > Cut	⌘X
+Edit > Copy	⌘C
+Edit > Copy with Styles	⌥⌘C
+Edit > Copy with Control Sequences
+Edit > Copy Mode	⇧⌘C
+Edit > Paste	⌘V
+Edit > Paste Special > Advanced Paste…	⌥⌘V
+Edit > Paste Special > Paste Selection	⇧⌘V
+Edit > Paste Special > Paste File Base64-Encoded
+Edit > Paste Special > Paste Slowly
+Edit > Paste Special > Paste Faster
+Edit > Paste Special > Paste Slowly Faster
+Edit > Paste Special > Paste Slower
+Edit > Paste Special > Paste Slowly Slower
+Edit > Paste Special > Warn Before Multi-Line Paste
+Edit > Paste Special > Limit Multi-Line Paste Warning to Shell Prompt
+Edit > Paste Special > Prompt to Convert Tabs to Spaces when Pasting
+Edit > Paste Special > Warn Before Pasting One Line Ending in a Newline at Shell Prompt
+Edit > Replace Selection > Render Selection Natively	⌥⌘E
+Edit > Replace Selection > Replace with Pretty-Printed JSON
+Edit > Replace Selection > Replace with Base 64-Encoded Value
+Edit > Replace Selection > Replace with Base 64-Decoded Value
+Edit > Engage Artificial Intelligence	⌘Y
+Edit > Explain Output with AI	⌥⌘Y
+Edit > Snippets > Press Option to Edit Before Sending
+Edit > Open Selection	⌥⌘O
+Edit > Jump to Selection	⌘J
+Edit > Select All	⌘A
+Edit > Selection Respects Soft Boundaries	⌥⇧⌘A
+Edit > Select Output of Last Command	⇧⌘A
+Edit > Select Current Command
+Edit > Find > Find…	⌘F
+Edit > Find > Find Next	⌘G
+Edit > Find > Find Previous	⇧⌘G
+Edit > Find > Use Selection for Find	⌘E
+Edit > Find > Clear Find	⌥⇧⌘E
+Edit > Find > Find Globally...	⇧⌘F
+Edit > Find > Select Matches	⌥⌘
+Edit > Find > Find URLs	⌥⌘U
+Edit > Find > Find All Smart Selection Matches	⌥⇧⌘U
+Edit > Find > Pick Result to Open	⌥⇧⌘O
+Edit > Find > Filter	⌥⇧⌘F
+Edit > Marks and Annotations > Set Mark	⇧⌘M
+Edit > Marks and Annotations > Jump to Mark	⇧⌘J
+Edit > Marks and Annotations > Next Mark	⇧⌘
+Edit > Marks and Annotations > Previous Mark	⇧⌘
+Edit > Marks and Annotations > Add Annotation at Cursor	⌥⌘M
+Edit > Marks and Annotations > Annotate Selection
+Edit > Marks and Annotations > Next Annotation	⌥⇧⌘
+Edit > Marks and Annotations > Previous Annotation	⌥⇧⌘
+Edit > Marks and Annotations > Alerts > Alert on Next Mark	⌥⌘A
+Edit > Marks and Annotations > Alerts > Alert on Marks in Offscreen Sessions
+Edit > Marks and Annotations > Alerts > Show Modal Alert Box
+Edit > Marks and Annotations > Alerts > Post Notification
+Edit > Marks and Annotations > Alerts > Play a Sound
+Edit > Set Named Mark	⌥⇧⌘M
+Edit > Fold/Unfold	⇧⌘L
+Edit > Fold All	⌥⇧⌘L
+Edit > Clear Buffer	⌘K
+Edit > Clear Instant Replay	⌥⌘K
+Edit > Clear Scrollback Buffer	⇧⌘K
+Edit > Clear to Start of Selection	⌘L
+Edit > Clear to Last Mark	⌥⌘L
+Edit > Writing Tools > Show Writing Tools
+Edit > Writing Tools > Proofread
+Edit > Writing Tools > Rewrite
+Edit > Writing Tools > Make Friendly
+Edit > Writing Tools > Make Professional
+Edit > Writing Tools > Make Concise
+Edit > Writing Tools > Summarize
+Edit > Writing Tools > Create Key Points
+Edit > Writing Tools > Make List
+Edit > Writing Tools > Make Table
+Edit > Writing Tools > Compose…
+Edit > AutoFill > Contact…
+Edit > AutoFill > Passwords…
+Edit > AutoFill > Credit Card…
+Edit > Start Dictation…	(none)🎤
+Edit > Emoji & Symbols	(none)🌐
+View > Show Tabs in Fullscreen	⇧⌘U
+View > Toggle Full Screen	24F
+View > Toolbelt > Show Toolbelt	⇧⌘B
+View > Toolbelt > Set Default Width
+View > Toolbelt > Actions
+View > Toolbelt > Captured Output
+View > Toolbelt > Codecierge
+View > Toolbelt > Command History
+View > Toolbelt > Jobs
+View > Toolbelt > Named Marks
+View > Toolbelt > Notes
+View > Toolbelt > Paste History
+View > Toolbelt > Profiles
+View > Toolbelt > Recent Directories
+View > Toolbelt > Session Status
+View > Toolbelt > Snippets
+View > Use Transparency	⌘U
+View > Disable Transparency for Active Window
+View > Zoom In on Selection	⌥⌘Z
+View > Zoom Out	(none)
+View > Find Cursor	⌘/
+View > Show Annotations	⌘\
+View > Show Clippings	⇧⌘=
+View > Show Inline Chat	⇧⌘,
+View > Show Composer	⇧⌘.
+View > Show Cursor Guide	⌥⌘;
+View > Show Session Note	⌥⌘G
+View > Show Timestamps	⇧⌘E
+View > Auto Command Completion	⌥⇧⌘Y
+View > Auto Composer	⌥⇧⌘.
+View > Open Quickly	⇧⌘O
+View > Maximize Active Pane	⇧⌘
+View > Make Text Bigger	⌘+
+View > Make Text Normal Size	⌘0
+View > Restore Text and Session Size	⌥⌘0
+View > Make Text Smaller	⌘-
+View > Size Changes Update Profile
+View > Start Instant Replay	⌥⌘B
+View > Current Tab Color
+Session > Edit Session…	⌘I
+Session > Run Coprocess…	⌥⌘R
+Session > Stop Coprocess	⌥⇧⌘R
+Session > Restart Session
+Session > Duplicate Session
+Session > Open Autocomplete…	⌘;
+Session > Open Command History…	⇧⌘;
+Session > Open Recent Directories…	⌥⌘/
+Session > Open Paste History…	⇧⌘H
+Session > Open AI Chat…	⌃⇧⌘Y
+Session > Triggers > Add Trigger…
+Session > Triggers > Edit Triggers
+Session > Triggers > Enable Triggers in Interactive Apps
+Session > Triggers > Enable All
+Session > Triggers > Disable All
+Session > Triggers > Enter Workgroup “Claude Code”
+Session > Triggers > Exit Workgroup
+Session > Reset	⌘R
+Session > Reset Character Set
+Session > Move Session > Move Session to Window
+Session > Move Session > Move Session to Tab
+Session > Move Session > Move Session to Split Pane
+Session > Log > Log to File
+Session > Log > Import Recording
+Session > Log > Export Recording
+Session > Make Screenshot…
+Session > Terminal State > Alternate Screen
+Session > Terminal State > Focus Reporting
+Session > Terminal State > Mouse Reporting
+Session > Terminal State > Paste Bracketing
+Session > Terminal State > Application Cursor
+Session > Terminal State > Application Keypad
+Session > Terminal State > Standard Key Reporting Mode
+Session > Terminal State > modifyOtherKeys Mode 1
+Session > Terminal State > modifyOtherKeys Mode 2
+Session > Terminal State > CSI u Mode
+Session > Terminal State > Raw Key Reporting Mode
+Session > Terminal State > Disambiguate Escape
+Session > Terminal State > Report All Event Types
+Session > Terminal State > Report Alternate Keys
+Session > Terminal State > Report All Keys as Escape Codes
+Session > Terminal State > Report Associated Text
+Session > Terminal State > Literal Controls
+Session > Terminal State > Emulation Level > VT100
+Session > Terminal State > Emulation Level > VT200
+Session > Terminal State > Emulation Level > VT300
+Session > Terminal State > Emulation Level > VT400
+Session > Terminal State > Emulation Level > VT500
+Session > Terminal State > Reset
+Session > Bury Session	⌥⇧⌘B
+Scripts > Manage > New Python Script
+Scripts > Manage > Open Python REPL
+Scripts > Manage > Manage Dependencies…
+Scripts > Manage > Check for Updated Runtime
+Scripts > Manage > Install Already-Downloaded Python Runtime
+Scripts > Manage > Reveal Scripts in Finder
+Scripts > Manage > Import…
+Scripts > Manage > Export…
+Scripts > Manage > Console	⌥⌘J
+Scripts > AutoLaunch > timer
+Scripts > AutoLaunch > Reveal timer
+Profiles > Open Profiles…	⌘O
+Profiles > Press Option for New Window
+Profiles > Open In New Window
+Profiles > Default
+Profiles > Default
+Profiles > Web Browser
+Profiles > Web Browser
+Profiles > Open All
+Profiles > Open All in New Window
+Window > Minimize	⌘M
+Window > Minimize All
+Window > Zoom	⇧⌘0
+Window > Zoom All	⌥⇧⌘0
+Window > Fill	28F
+Window > Center	28C
+Window > Move & Resize > Halves
+Window > Move & Resize > Left
+Window > Move & Resize > Right
+Window > Move & Resize > Top
+Window > Move & Resize > Bottom
+Window > Move & Resize > Quarters
+Window > Move & Resize > Top Left
+Window > Move & Resize > Top Right
+Window > Move & Resize > Bottom Left
+Window > Move & Resize > Bottom Right
+Window > Move & Resize > Arrange
+Window > Move & Resize > Left & Right
+Window > Move & Resize > Left & Quarters
+Window > Move & Resize > Right & Left
+Window > Move & Resize > Right & Quarters
+Window > Move & Resize > Top & Bottom
+Window > Move & Resize > Top & Quarters
+Window > Move & Resize > Bottom & Top
+Window > Move & Resize > Bottom & Quarters
+Window > Move & Resize > Quarters
+Window > Move & Resize > Return to Previous Size	28R
+Window > Full Screen Tile > Left of Screen
+Window > Full Screen Tile > Right of Screen
+Window > Arrangements > Save Window Arrangement	⇧⌘S
+Window > Arrangements > Save Current Window as Arrangement	⌥⇧⌘S
+Window > Arrangements > Load Arrangement from File…
+Window > Arrangements > Change Profile in Arrangement…
+Window > Edit Window Title
+Window > Tab > Edit Tab Title
+Window > Tab > Select Tab > Select Next Tab	⇧⌘]
+Window > Tab > Select Tab > Select Previous Tab	⇧⌘[
+Window > Tab > Select Tab > Select Next Tab Group	⌃⇧⌘]
+Window > Tab > Select Tab > Select Previous Tab Group	⌃⇧⌘[
+Window > Tab > Select Tab > ..laude-toolbox (-zsh)
+Window > Tab > Select Tab > ✳ Blog posts in Teamwork (claude)
+Window > Tab > Select Tab > ◐ Logi MX Keypad plugins development plan (claude)
+Window > Tab > Move Tab > Move Tab to New Window
+Window > Tab > Move Tab > Move Tab Left	⌥⇧⌘[
+Window > Tab > Move Tab > Move Tab Right	⌥⇧⌘]
+Window > Tab > Add Tab to New Group…
+Window > Tab > Remove Tab from Group
+Window > Split Pane > Select Split Pane > Select Pane Above	⌥⌘
+Window > Split Pane > Select Split Pane > Select Pane Below	⌥⌘
+Window > Split Pane > Select Split Pane > Select Pane Left	⌥⌘
+Window > Split Pane > Select Split Pane > Select Pane Right	⌥⌘
+Window > Split Pane > Select Split Pane > Next Pane	⌘]
+Window > Split Pane > Select Split Pane > Previous Pane	⌘[
+Window > Split Pane > Select Split Pane > Previous Peer	⌥⌘[
+Window > Split Pane > Select Split Pane > Next Peer	⌥⌘]
+Window > Split Pane > Resize Split Pane > Move Divider Up	⌃⌘
+Window > Split Pane > Resize Split Pane > Move Divider Down	⌃⌘
+Window > Split Pane > Resize Split Pane > Move Divider Left	⌃⌘
+Window > Split Pane > Resize Split Pane > Move Divider Right	⌃⌘
+Window > Split Pane > Lock Split Pane Width
+Window > Window Style > Normal
+Window > Window Style > Full Screen
+Window > Window Style > Maximized
+Window > Window Style > No Title Bar
+Window > Window Style > Centered
+Window > Window Style > Full-Width Bottom of Screen
+Window > Window Style > Full-Width Top of Screen
+Window > Window Style > Full-Height Left of Screen
+Window > Window Style > Full-Height Right of Screen
+Window > Window Style > Bottom of Screen
+Window > Window Style > Top of Screen
+Window > Window Style > Left of Screen
+Window > Window Style > Right of Screen
+Window > Lock Size
+Window > Lock Layout
+Window > Notify on Status Change
+Window > Arrange Windows > Merge All Windows
+Window > Arrange Windows > Arrange Windows Horizontally
+Window > Arrange Windows > Arrange Split Panes Evenly
+Window > Resize Window > Decrease Height
+Window > Resize Window > Increase Height
+Window > Resize Window > Decrease Width
+Window > Resize Window > Increase Width
+Window > Password Manager	⌥⌘F
+Window > AI Chats	⇧⌘Y
+Window > Cockpit	⌥⇧⌘C
+Window > Pin Hotkey Window	⇧⌘-
+Window > Bring All To Front
+Window > Arrange in Front
+Window > Remove Window from Set
+Help > iTerm2 Help
+Help > Copy Mode Shortcuts
+Help > Open Source Licenses
+Help > GPU Renderer Availability

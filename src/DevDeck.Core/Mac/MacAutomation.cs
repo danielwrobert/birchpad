@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace DevDeck.Core.Mac;
 
 /// <summary>
@@ -30,6 +28,34 @@ public sealed class MacAutomation
     {
         var result = this.Run("/usr/bin/osascript", ["-e", script], timeout ?? TimeSpan.FromSeconds(10));
         return result.ExitCode == 0 ? result.Output.Trim() : null;
+    }
+
+    /// <summary>
+    /// Clicks a menu item by path, for example <c>"Edit", "Clear Buffer"</c> or
+    /// <c>"Shell", "Broadcast Input", "Broadcast Input to All Panes in Current Tab"</c>.
+    /// Works for items with no shortcut; the app does not need to be in front.
+    /// </summary>
+    public bool ClickMenu(string bundleId, params string[] path) =>
+        path.Length >= 2 && this.AppleScript(MenuScript(bundleId, path)) is not null;
+
+    internal static string MenuScript(string bundleId, string[] path)
+    {
+        // Build "menu item X of menu 1 of menu item Y of menu Z of menu bar item Z of menu bar 1" from the leaf up.
+        var reference = $"menu bar item {Quote(path[0])} of menu bar 1";
+        reference = $"menu {Quote(path[0])} of {reference}";
+        for (var i = 1; i < path.Length - 1; i++)
+        {
+            reference = $"menu 1 of menu item {Quote(path[i])} of {reference}";
+        }
+
+        reference = $"menu item {Quote(path[^1])} of {reference}";
+        return $$"""
+            tell application "System Events"
+              tell (first process whose bundle identifier is {{Quote(bundleId)}})
+                click {{reference}}
+              end tell
+            end tell
+            """;
     }
 
     /// <summary>Opens a Claude Desktop Code session by its Claude Code session ID.</summary>
@@ -86,33 +112,13 @@ public sealed class MacAutomation
     {
         try
         {
-            var info = new ProcessStartInfo(file)
+            var (exitCode, output, error) = ProcessRunner.Run(file, args, timeout);
+            if (exitCode != 0)
             {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            };
-            foreach (var arg in args)
-            {
-                info.ArgumentList.Add(arg);
+                this.log?.Invoke($"{Path.GetFileName(file)} exited {exitCode}: {error.Trim()}");
             }
 
-            using var process = Process.Start(info)!;
-            var output = process.StandardOutput.ReadToEndAsync();
-            var error = process.StandardError.ReadToEndAsync();
-            if (!process.WaitForExit(timeout))
-            {
-                process.Kill(entireProcessTree: true);
-                this.log?.Invoke($"{Path.GetFileName(file)} timed out");
-                return (-1, string.Empty);
-            }
-
-            if (process.ExitCode != 0)
-            {
-                this.log?.Invoke($"{Path.GetFileName(file)} exited {process.ExitCode}: {error.Result.Trim()}");
-            }
-
-            return (process.ExitCode, output.Result);
+            return (exitCode, output);
         }
         catch (Exception ex)
         {
