@@ -5,8 +5,8 @@ namespace Loupedeck.Tiles
     using System.IO;
     using System.Linq;
 
-    using DevDeck.Core.Config;
-    using DevDeck.Core.Mac;
+    using Birchpad.Core.Config;
+    using Birchpad.Core.Mac;
 
     // One key per saved prompt in prompts.json, pasted into an agent app and sent.
     // Claude and Codex share the file, so a prompt written once works in both.
@@ -20,7 +20,7 @@ namespace Loupedeck.Tiles
         }
 
         public static String PromptsFile => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DevDeck", "prompts.json");
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Birchpad", "prompts.json");
 
         protected abstract String BundleId { get; }
 

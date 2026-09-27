@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate default keypad layouts for the DevDeck plugins.
+"""Generate default keypad layouts for the Birchpad plugins.
 
 Each layout is written as a ProfileInfo.json in the schema Logi Plugin Service
 stores under Applications/Loupedeck70/<app>/Profiles/<id>/. Packing one into a
@@ -29,7 +29,7 @@ def action(plugin, cls, param=None):
 
 
 def hub(cls, param=None):
-    return action("AgentHub", cls, param)
+    return action("BirchpadAgentHub", cls, param)
 
 
 # Page 1 of every app profile: status is visible whichever app is in front.
@@ -41,22 +41,22 @@ AGENTS_PAGE = ("Agents", [
 
 
 def claude(param):
-    return action("Claude", "AppCommand", param)
+    return action("BirchpadClaude", "AppCommand", param)
 
 
 def codex(param):
-    return action("Codex", "AppCommand", param)
+    return action("BirchpadCodex", "AppCommand", param)
 
 
 def iterm(cls, param):
-    return action("ITerm", cls, param)
+    return action("BirchpadITerm", cls, param)
 
 
 PROFILES = {
     "claude": {
-        "applicationName": "@_claude",
-        "displayName": "DevDeck Claude",
-        "plugin": "Claude",
+        "applicationName": "@_birchpadclaude",
+        "displayName": "Birchpad Claude",
+        "plugin": "BirchpadClaude",
         "pages": [
             AGENTS_PAGE,
             ("Claude", [
@@ -65,16 +65,16 @@ PROFILES = {
                 claude("previous-session"), claude("next-session"), claude("stop"),
             ]),
             ("More", [
-                action("Claude", "ClaudePromptCommand", "Explain"), action("Claude", "ClaudePromptCommand", "Review"), action("Claude", "ClaudePromptCommand", "Tests"),
+                action("BirchpadClaude", "ClaudePromptCommand", "Explain"), action("BirchpadClaude", "ClaudePromptCommand", "Review"), action("BirchpadClaude", "ClaudePromptCommand", "Tests"),
                 claude("sidebar"), claude("terminal"), claude("changes"),
                 claude("side-chat"), claude("dictate"), claude("search"),
             ]),
         ],
     },
     "codex": {
-        "applicationName": "@_codex",
-        "displayName": "DevDeck Codex",
-        "plugin": "Codex",
+        "applicationName": "@_birchpadcodex",
+        "displayName": "Birchpad Codex",
+        "plugin": "BirchpadCodex",
         "pages": [
             AGENTS_PAGE,
             ("Codex", [
@@ -83,16 +83,16 @@ PROFILES = {
                 codex("file-tree"), codex("terminal"), codex("stop"),
             ]),
             ("More", [
-                action("Codex", "CodexPromptCommand", "Explain"), action("Codex", "CodexPromptCommand", "Review"), action("Codex", "CodexPromptCommand", "Tests"),
+                action("BirchpadCodex", "CodexPromptCommand", "Explain"), action("BirchpadCodex", "CodexPromptCommand", "Review"), action("BirchpadCodex", "CodexPromptCommand", "Tests"),
                 hub("CodexUsageCommand"), codex("dictate"), None,
                 None, None, None,
             ]),
         ],
     },
     "iterm": {
-        "applicationName": "@_iterm",
-        "displayName": "DevDeck iTerm",
-        "plugin": "ITerm",
+        "applicationName": "@_birchpaditerm",
+        "displayName": "Birchpad iTerm",
+        "plugin": "BirchpadITerm",
         "pages": [
             AGENTS_PAGE,
             ("iTerm", [

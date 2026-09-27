@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Add or remove DevDeck Agent Hub hooks in ~/.codex/hooks.json.
+"""Add or remove Birchpad Agent Hub hooks in ~/.codex/hooks.json.
 
-Codex hooks only run commands, so each entry calls devdeck-codex-hook.sh, which
+Codex hooks only run commands, so each entry calls birchpad-codex-hook.sh, which
 this script copies to ~/.codex/hooks/. Entries are recognized by that script name,
 so running this twice changes nothing and remove leaves other hooks alone.
 
 Codex skips new or changed hooks until they are trusted: open /hooks in the Codex
-CLI after installing and trust the DevDeck entries.
+CLI after installing and trust the Birchpad entries.
 
 Usage:
   codex_hooks.py install [--blocking-permissions] [--port 8766] [--codex-home ~/.codex]
@@ -20,10 +20,10 @@ import sys
 import time
 from pathlib import Path
 
-SCRIPT_NAME = "devdeck-codex-hook.sh"
+SCRIPT_NAME = "birchpad-codex-hook.sh"
 
-# Written only when this script creates hooks.json, and removed with the last DevDeck entry.
-DESCRIPTION = "Lifecycle hooks, including DevDeck Agent Hub status."
+# Written only when this script creates hooks.json, and removed with the last Birchpad entry.
+DESCRIPTION = "Lifecycle hooks, including Birchpad Agent Hub status."
 
 # Event name -> timeout in seconds. SessionEnd and Interrupt allow at most 3.
 STATUS_EVENTS = {
@@ -77,7 +77,7 @@ def add_ours(hooks, script, blocking_permissions, port):
 def write_in_place(path, text):
     """Replaces a file's contents atomically without breaking a symlink or loosening its permissions."""
     target = path.resolve()
-    tmp = target.with_name(target.name + ".devdeck-tmp")
+    tmp = target.with_name(target.name + ".birchpad-tmp")
     tmp.write_text(text)
     if target.exists():
         shutil.copymode(target, tmp)
@@ -103,7 +103,7 @@ def main():
     hooks = config.setdefault("hooks", {})
 
     if hooks_file.exists():
-        backup = hooks_file.with_name(f"hooks.json.devdeck-{time.strftime('%Y%m%d-%H%M%S')}")
+        backup = hooks_file.with_name(f"hooks.json.birchpad-{time.strftime('%Y%m%d-%H%M%S')}")
         shutil.copy2(hooks_file, backup)
         print(f"backup at {backup}")
 
@@ -134,7 +134,7 @@ def main():
 
     print(f"{args.action}: removed {removed}, added {added} in {hooks_file}")
     if added:
-        print("Open /hooks in the Codex CLI and trust the DevDeck entries; Codex skips them until then.")
+        print("Open /hooks in the Codex CLI and trust the Birchpad entries; Codex skips them until then.")
     return 0
 
 

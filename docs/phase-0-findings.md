@@ -28,14 +28,14 @@ Decision: target `net10.0` with the .NET 10 SDK (10.0.401, Homebrew `dotnet`).
 `LogiPluginTool` 6.1.4 is installed as a global dotnet tool.
 Builds need `DOTNET_ROOT=/opt/homebrew/opt/dotnet/libexec`.
 
-The spike plugin at `spikes/DevDeckSpikePlugin` builds, links, and loads: "Plugin 'DevDeckSpike' version '1.0' loaded ... in 196 ms" in `~/Library/Application Support/Logi/LogiPluginService/Logs/plugin_logs/DevDeckSpike.log`.
+The spike plugin at `spikes/BirchpadSpikePlugin` builds, links, and loads: "Plugin 'BirchpadSpike' version '1.0' loaded ... in 196 ms" in `~/Library/Application Support/Logi/LogiPluginService/Logs/plugin_logs/BirchpadSpike.log`.
 It is linked to iTerm by bundle ID and its key redraws in green, amber, or red with a counter on each press.
 
 ## 3. App linking
 
 The spike returns `com.googlecode.iterm2` from `GetBundleName()` and declares `HasApplication`.
 Passed on the device: the keypad switches to the spike's profile when iTerm is in front, and the key redraws its color and count on each press.
-The profile tab is named after the plugin (DevDeckSpike) with a puzzle-piece icon, so each real plugin needs a clear `displayName` and its own `Icon256x256.png`.
+The profile tab is named after the plugin (BirchpadSpike) with a puzzle-piece icon, so each real plugin needs a clear `displayName` and its own `Icon256x256.png`.
 
 ## 4. Universal actions on app profiles
 

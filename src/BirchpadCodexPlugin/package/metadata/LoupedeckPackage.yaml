@@ -1,0 +1,23 @@
+type: plugin4
+name: BirchpadCodex
+displayName: Birchpad Codex
+description: Chats, panels, saved prompts, and stop for Codex in the ChatGPT app.
+pluginFileName: BirchpadCodexPlugin.dll
+version: 0.1.0
+author: thejimbirch
+copyright: Copyright © 2026 thejimbirch. All rights reserved.
+
+pluginFolderMac: bin
+
+supportedDevices:
+    - MxCreativeKeypad
+    - LoupedeckCtFamily
+
+# Linked to the ChatGPT app, so "Adapt to App" shows these keys when it is in front.
+pluginCapabilities:
+    - HasApplication
+
+minimumLoupedeckVersion: 6.0
+
+license: MIT
+licenseUrl: https://opensource.org/licenses/MIT

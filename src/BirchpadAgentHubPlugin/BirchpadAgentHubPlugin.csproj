@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Loupedeck.BirchpadAgentHubPlugin</RootNamespace>
+    <LangVersion>latest</LangVersion>
+
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <PluginApiDir Condition="$(OS) == 'Windows_NT'">C:\Program Files\Logi\LogiPluginService\</PluginApiDir>
+    <PluginApiDir Condition="$(OS) != 'Windows_NT'">/Applications/Utilities/LogiPluginService.app/Contents/MonoBundle/</PluginApiDir>
+
+    <PluginDir Condition="$(OS) == 'Windows_NT'">$(LocalAppData)\Logi\LogiPluginService\Plugins\</PluginDir>
+    <PluginDir Condition="$(OS) != 'Windows_NT'">~/Library/Application\ Support/Logi/LogiPluginService/Plugins/</PluginDir>
+
+    <BaseOutputPath>$(MSBuildThisFileDirectory)bin\</BaseOutputPath>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\bin\</OutputPath>
+
+    <PluginShortName>BirchpadAgentHub</PluginShortName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="PluginApi">
+      <HintPath>$(PluginApiDir)PluginApi.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Birchpad.Core\Birchpad.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\**\*.cs" Link="Shared\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="package\**" />
+  </ItemGroup>
+
+  <Target Name="CopyPackage" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <PackageFiles Include="package\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)..\%(RecursiveDir)" />
+  </Target>
+
+  <!-- Debug builds link into Logi Plugin Service and reload the plugin; Release builds are for packaging. -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug' and $(OS) != 'Windows_NT'">
+    <Exec Command="echo $(BaseOutputPath)$(Configuration)\ &gt; $(PluginDir)$(ProjectName).link" />
+    <Exec Command="open loupedeck:plugin/$(PluginShortName)/reload" ContinueOnError="true" />
+  </Target>
+
+  <Target Name="PluginClean" AfterTargets="CoreClean" Condition="$(OS) != 'Windows_NT'">
+    <Exec Command="rm -f $(PluginDir)$(ProjectName).link" />
+    <RemoveDir Directories="$(OutputPath)..\" />
+  </Target>
+
+</Project>

@@ -1,11 +1,11 @@
-# DevDeck: MX Keypad plugins for agent work
+# Birchpad: MX Keypad plugins for agent work
 
 Four Logi Actions SDK plugins that put Claude Code, Codex, and iTerm on a Logitech MX Keypad.
 
-- DevDeck Agent Hub (universal): live session tiles for Claude Code and Codex, permission answers, interrupt, routines, cloud sessions, and Codex usage.
-- DevDeck Claude (Claude Desktop): chats, Code sessions, panels, saved prompts, and stop.
-- DevDeck Codex (ChatGPT app): chats, panels, saved prompts, and stop.
-- DevDeck iTerm (iTerm2): tabs, splits, broadcast, saved commands, and agent keys.
+- Birchpad Agent Hub (universal): live session tiles for Claude Code and Codex, permission answers, interrupt, routines, cloud sessions, and Codex usage.
+- Birchpad Claude (Claude Desktop): chats, Code sessions, panels, saved prompts, and stop.
+- Birchpad Codex (ChatGPT app): chats, panels, saved prompts, and stop.
+- Birchpad iTerm (iTerm2): tabs, splits, broadcast, saved commands, and agent keys.
 
 The plan is in `2026-09-26-logi-mx-keypad-plugins.md`.
 Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, and `docs/iterm.md`.
@@ -22,8 +22,8 @@ Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, and `docs/ite
 ```sh
 export DOTNET_ROOT=/opt/homebrew/opt/dotnet/libexec
 export PATH=/opt/homebrew/opt/dotnet/bin:$PATH:$HOME/.dotnet/tools
-dotnet test tests/DevDeck.Core.Tests
-dotnet build DevDeck.slnx
+dotnet test tests/Birchpad.Core.Tests
+dotnet build Birchpad.slnx
 ```
 
 A Debug build links each plugin into Logi Plugin Service and reloads it.
@@ -36,9 +36,9 @@ python3 hooks/claude_hooks.py install
 python3 hooks/codex_hooks.py install
 ```
 
-Then run `codex`, type `/hooks`, and trust the DevDeck entries; Codex skips them until then.
+Then run `codex`, type `/hooks`, and trust the Birchpad entries; Codex skips them until then.
 Both installers take `--port` (default 8766) and write it into the hook commands; use the same value as the Agent Hub `port` plugin setting.
-Both scripts back up the file they change, and `remove` takes the DevDeck entries out again.
+Both scripts back up the file they change, and `remove` takes the Birchpad entries out again.
 While Logitech's "Claude Desktop (Beta)" plugin is installed, leave off `--blocking-permissions` so the two plugins do not both hold permission requests.
 
 ## Package
@@ -52,7 +52,7 @@ logiplugintool install dist/AgentHub.lplug4
 
 ## Settings files
 
-These live in `~/Library/Application Support/DevDeck/` and are created on first use:
+These live in `~/Library/Application Support/Birchpad/` and are created on first use:
 
 - `prompts.json`: saved prompts for the Claude and Codex plugins.
 - `iterm-commands.json`: saved commands for the iTerm plugin.

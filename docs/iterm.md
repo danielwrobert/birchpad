@@ -1,6 +1,6 @@
 # iTerm plugin developer notes
 
-"DevDeck iTerm" is linked to iTerm2 (`com.googlecode.iterm2`), so its keys show when iTerm is in front.
+"Birchpad iTerm" is linked to iTerm2 (`com.googlecode.iterm2`), so its keys show when iTerm is in front.
 It drives iTerm through AppleScript and clicks menu items by path where AppleScript has no verb.
 Menu paths come from `docs/reference/menus-com.googlecode.iterm2.txt`.
 
@@ -9,7 +9,7 @@ Menu paths come from `docs/reference/menus-com.googlecode.iterm2.txt`.
 ```sh
 export DOTNET_ROOT=/opt/homebrew/opt/dotnet/libexec
 export PATH=/opt/homebrew/opt/dotnet/bin:$PATH
-dotnet build src/ITermPlugin
+dotnet build src/BirchpadITermPlugin
 ```
 
 The plugin log is `~/Library/Application Support/Logi/LogiPluginService/Logs/plugin_logs/ITerm.log`.
@@ -19,7 +19,7 @@ The plugin log is `~/Library/Application Support/Logi/LogiPluginService/Logs/plu
 - Pane: New tab, Split right, Split down, Clear, Broadcast tab, Broadcast off.
 - Agent key: Esc, Mode (Shift+Tab), Ctrl-C, plus `/clear`, `/compact`, `/model`, `/remote-control` for Claude Code and `/new`, `/compact`, `/model`, `/status` for Codex.
 - Launch agent: New claude, New codex; each opens a split in the current folder and starts the CLI.
-- Saved command: one key per entry in `~/Library/Application Support/DevDeck/iterm-commands.json`.
+- Saved command: one key per entry in `~/Library/Application Support/Birchpad/iterm-commands.json`.
 
 Agent keys and saved commands type into the current session of the front window.
 

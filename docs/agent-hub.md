@@ -1,19 +1,19 @@
 # Agent Hub developer notes
 
 Agent Hub is the universal plugin that shows agent sessions on the keypad and answers permission requests.
-Its logic lives in `src/DevDeck.Core`, which has no Logitech dependency and is covered by `tests/DevDeck.Core.Tests`.
-The plugin in `src/AgentHubPlugin` wires that logic to keys.
+Its logic lives in `src/Birchpad.Core`, which has no Logitech dependency and is covered by `tests/Birchpad.Core.Tests`.
+The plugin in `src/BirchpadAgentHubPlugin` wires that logic to keys.
 
 ## Build and test
 
 ```sh
 export DOTNET_ROOT=/opt/homebrew/opt/dotnet/libexec
 export PATH=/opt/homebrew/opt/dotnet/bin:$PATH:$HOME/.dotnet/tools
-dotnet test tests/DevDeck.Core.Tests
-dotnet build src/AgentHubPlugin
+dotnet test tests/Birchpad.Core.Tests
+dotnet build src/BirchpadAgentHubPlugin
 ```
 
-Building the plugin writes `AgentHubPlugin.link` into `~/Library/Application Support/Logi/LogiPluginService/Plugins/` and asks Logi Plugin Service to reload it.
+Building the plugin writes `BirchpadAgentHubPlugin.link` into `~/Library/Application Support/Logi/LogiPluginService/Plugins/` and asks Logi Plugin Service to reload it.
 The plugin log is `~/Library/Application Support/Logi/LogiPluginService/Logs/plugin_logs/AgentHub.log`.
 A reload clears all session state.
 
@@ -50,7 +50,7 @@ After the official plugin is removed, `install --blocking-permissions` points it
 
 When the `claude` CLI is found, Agent Hub runs it headless every 30 minutes (plugin setting `cloudIntervalMinutes`, minimum 5).
 Each run costs about $0.02 of subscription usage and reads cloud routines (`RemoteTrigger`) and peer sessions (`ListAgents`).
-Results are taken from the tool output, not the model's reply, and cached in `~/Library/Application Support/DevDeck/cloud-cache.json`.
+Results are taken from the tool output, not the model's reply, and cached in `~/Library/Application Support/Birchpad/cloud-cache.json`.
 A failed run keeps the last good lists and marks the Refresh key red.
 
 Local scheduled tasks come from Claude Desktop's `scheduled-tasks.json` and are reread every minute at no cost.
@@ -58,7 +58,7 @@ Local scheduled tasks come from Claude Desktop's `scheduled-tasks.json` and are 
 ## Profiles
 
 Keypad profiles are JSON files under `~/Library/Application Support/Logi/LogiPluginService/Applications/Loupedeck70/<app>/Profiles/<id>/ProfileInfo.json`.
-Each key stores an action ID such as `$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___1`, so default profiles can be generated rather than exported by hand.
+Each key stores an action ID such as `$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.SessionSlotCommand___1`, so default profiles can be generated rather than exported by hand.
 
 ## Keys
 

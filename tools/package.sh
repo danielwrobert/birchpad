@@ -11,9 +11,9 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_ROLL_FORWARD=Major
 
 mkdir -p "$root/dist"
-dotnet test "$root/tests/DevDeck.Core.Tests" --nologo -v quiet
+dotnet test "$root/tests/Birchpad.Core.Tests" --nologo -v quiet
 
-for plugin in AgentHub ITerm Codex Claude; do
+for plugin in BirchpadAgentHub BirchpadITerm BirchpadCodex BirchpadClaude; do
   project="$root/src/${plugin}Plugin"
   output="$project/bin/Release"
   rm -rf "$output"

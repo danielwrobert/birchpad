@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BirchpadAgentHubPlugin/BirchpadAgentHubPlugin.csproj" />
+    <Project Path="src/BirchpadClaudePlugin/BirchpadClaudePlugin.csproj" />
+    <Project Path="src/BirchpadCodexPlugin/BirchpadCodexPlugin.csproj" />
+    <Project Path="src/Birchpad.Core/Birchpad.Core.csproj" />
+    <Project Path="src/BirchpadITermPlugin/BirchpadITermPlugin.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Birchpad.Core.Tests/Birchpad.Core.Tests.csproj" />
+  </Folder>
+</Solution>

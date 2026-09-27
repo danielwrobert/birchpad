@@ -2,10 +2,10 @@
   "$type": "Loupedeck.Service.ApplicationProfile, LoupedeckService",
   "name": "A1F25FA7C9D450B482E8A18508DA6965",
   "profileFlags": "None",
-  "displayName": "DevDeck Codex",
+  "displayName": "Birchpad Codex",
   "description": null,
   "deviceType": "Loupedeck70",
-  "applicationName": "@_codex",
+  "applicationName": "@_birchpadcodex",
   "nativePluginName": "Codex",
   "hasNativePlugin": true,
   "additionalNativePluginNames": [
@@ -54,55 +54,55 @@
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 0,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___1",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.SessionSlotCommand___1",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 1,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___2",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.SessionSlotCommand___2",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 2,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___3",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.SessionSlotCommand___3",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 3,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___4",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.SessionSlotCommand___4",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 4,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.SessionSlotCommand___5",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.SessionSlotCommand___5",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 5,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.NextWaitingCommand",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.NextWaitingCommand",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 6,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.AnswerCommand___allow",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.AnswerCommand___allow",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 7,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.AnswerCommand___deny",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.AnswerCommand___deny",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 8,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.InterruptCommand",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.InterruptCommand",
                     "rotateAction": null
                   }
                 ]
@@ -116,55 +116,55 @@
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 0,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___new-chat",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___new-chat",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 1,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___temporary-chat",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___temporary-chat",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 2,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___review-panel",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___review-panel",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 3,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___previous-chat",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___previous-chat",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 4,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___next-chat",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___next-chat",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 5,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___sidebar",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___sidebar",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 6,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___file-tree",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___file-tree",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 7,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___terminal",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___terminal",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 8,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___stop",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___stop",
                     "rotateAction": null
                   }
                 ]
@@ -178,31 +178,31 @@
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 0,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.CodexPromptCommand___Explain",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.CodexPromptCommand___Explain",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 1,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.CodexPromptCommand___Review",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.CodexPromptCommand___Review",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 2,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.CodexPromptCommand___Tests",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.CodexPromptCommand___Tests",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 3,
-                    "pressAction": "$AgentHub___Loupedeck.AgentHubPlugin.Actions.CodexUsageCommand",
+                    "pressAction": "$BirchpadAgentHub___Loupedeck.BirchpadAgentHubPlugin.Actions.CodexUsageCommand",
                     "rotateAction": null
                   },
                   {
                     "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                     "controlId": 4,
-                    "pressAction": "$Codex___Loupedeck.CodexPlugin.Actions.AppCommand___dictate",
+                    "pressAction": "$BirchpadCodex___Loupedeck.BirchpadCodexPlugin.Actions.AppCommand___dictate",
                     "rotateAction": null
                   },
                   {

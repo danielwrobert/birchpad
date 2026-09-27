@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add or remove DevDeck Agent Hub hooks in a Claude Code settings file.
+"""Add or remove Birchpad Agent Hub hooks in a Claude Code settings file.
 
 Entries are native HTTP hooks, so a stopped plugin costs Claude Code a refused
 connection and nothing else. Our entries are recognized by their URL, so running
@@ -10,7 +10,7 @@ Usage:
   claude_hooks.py remove [--port 8766] [--settings PATH]
   claude_hooks.py remove-legacy [--settings PATH]
 
---statusline copies devdeck-statusline.sh next to the settings file and sets it as the
+--statusline copies birchpad-statusline.sh next to the settings file and sets it as the
 status line, unless a different status line is already set. remove clears it again.
 
 remove-legacy takes out what Logitech's "Claude Desktop (Beta)" plugin added:
@@ -51,7 +51,7 @@ def base_url(port):
     return f"http://127.0.0.1:{port}/claude/"
 
 
-STATUSLINE_NAME = "devdeck-statusline.sh"
+STATUSLINE_NAME = "birchpad-statusline.sh"
 
 LEGACY_PORT_MARK = "localhost:8765"
 LEGACY_STATUSLINE_MARK = "claude-desktop/statusline.sh"
@@ -118,7 +118,7 @@ def set_statusline(settings, claude_dir, port):
 def write_in_place(path, text):
     """Replaces a file's contents atomically without breaking a symlink or loosening its permissions."""
     target = path.resolve()
-    tmp = target.with_name(target.name + ".devdeck-tmp")
+    tmp = target.with_name(target.name + ".birchpad-tmp")
     tmp.write_text(text)
     if target.exists():
         shutil.copymode(target, tmp)
@@ -137,14 +137,14 @@ def main():
         action="store_true",
         help="hold PermissionRequest hooks for a keypad answer (only once no other plugin does)",
     )
-    parser.add_argument("--statusline", action="store_true", help="install the DevDeck status line")
+    parser.add_argument("--statusline", action="store_true", help="install the Birchpad status line")
     args = parser.parse_args()
 
     settings = json.loads(args.settings.read_text()) if args.settings.exists() else {}
     hooks = settings.setdefault("hooks", {})
 
     real = args.settings.resolve()
-    backup = real.with_name(f"{real.name}.devdeck-{time.strftime('%Y%m%d-%H%M%S')}")
+    backup = real.with_name(f"{real.name}.birchpad-{time.strftime('%Y%m%d-%H%M%S')}")
     if real.exists():
         shutil.copy2(real, backup)
 
@@ -161,7 +161,7 @@ def main():
             set_statusline(settings, args.settings.parent, args.port)
     elif args.action == "remove" and STATUSLINE_NAME in str(settings.get("statusLine", {}).get("command", "")):
         del settings["statusLine"]
-        print("removed the DevDeck status line")
+        print("removed the Birchpad status line")
     if not hooks:
         del settings["hooks"]
 

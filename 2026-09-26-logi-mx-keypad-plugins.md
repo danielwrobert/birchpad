@@ -83,17 +83,17 @@ Default layouts ship as `profiles/DefaultProfile70mac.lp5` (70 is the MX Creativ
 ```text
 logi/
   src/
-    DevDeck.Core/          shared library
-    AgentHubPlugin/        HasNoApplication: status tiles, permissions, lists
-    ClaudePlugin/          app-linked: com.anthropic.claudefordesktop
-    CodexPlugin/           app-linked: com.openai.codex
-    ITermPlugin/           app-linked: com.googlecode.iterm2
+    Birchpad.Core/          shared library
+    BirchpadAgentHubPlugin/        HasNoApplication: status tiles, permissions, lists
+    BirchpadClaudePlugin/          app-linked: com.anthropic.claudefordesktop
+    BirchpadCodexPlugin/           app-linked: com.openai.codex
+    BirchpadITermPlugin/           app-linked: com.googlecode.iterm2
   helper/                  headless Claude Code prompt, allowed-tools list, cache schema
   hooks/                   scripts that Claude Code and Codex hooks call
   docs/
 ```
 
-DevDeck.Core holds the code every plugin needs:
+Birchpad.Core holds the code every plugin needs:
 
 - `HookListener`: `HttpListener` on `localhost:8766`, parsing hook and status line JSON into session events.
 - `SessionStore`: sessions by ID with source (Desktop, CLI, Remote Control, Codex), state (working, waiting for input, waiting for approval, done, failed), project, and last update.
@@ -193,7 +193,7 @@ Key-state screenshots were skipped by decision.
 
 Exit: `docs/phase-0-findings.md`, and this plan updated to match.
 
-### Phase 1: DevDeck.Core and Agent Hub with Claude status
+### Phase 1: Birchpad.Core and Agent Hub with Claude status
 
 Listener, session store, local readers, tiles, permissions, interrupt.
 Runs next to the official plugin on its own port so both can be compared on the device.
