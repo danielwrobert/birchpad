@@ -39,6 +39,28 @@ public sealed class SavedEntriesTests : IDisposable
     }
 
     [Fact]
+    public void Submit_defaults_to_true_and_keeps_the_trailing_space()
+    {
+        Directory.CreateDirectory(this.dir);
+        var file = Path.Combine(this.dir, "commands.json");
+        File.WriteAllText(file, """[{"name":"status","command":"git status"},{"name":"drush","command":"ddev drush ","submit":false}]""");
+
+        var commands = SavedEntries.LoadCommands(file, out _);
+
+        Assert.Equal([new SavedCommand("status", "git status", true), new SavedCommand("drush", "ddev drush ", false)], commands);
+    }
+
+    [Fact]
+    public void Slash_commands_start_with_the_starters_and_keep_submit_flags()
+    {
+        var file = Path.Combine(this.dir, "slash-commands.json");
+
+        Assert.Equal(SavedEntries.StarterSlashCommands, SavedEntries.LoadSlashCommands(file, out _));
+        File.WriteAllText(file, """[{"name":"pr","command":"/cms-cultivator:pr-create ","submit":false}]""");
+        Assert.Equal([new SavedCommand("pr", "/cms-cultivator:pr-create ", false)], SavedEntries.LoadSlashCommands(file, out _));
+    }
+
+    [Fact]
     public void Prompts_use_the_same_rules()
     {
         Directory.CreateDirectory(this.dir);

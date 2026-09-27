@@ -1,7 +1,12 @@
-using System.Text.Json.Nodes;
 using Birchpad.Core.Sessions;
 
 namespace Birchpad.Core.Claude;
+
+/// <summary>A folder Claude Desktop Code sessions ran in.</summary>
+public sealed record DesktopProject(string Path, DateTimeOffset LastUsed)
+{
+    public string Name => System.IO.Path.GetFileName(this.Path.TrimEnd('/'));
+}
 
 /// <summary>
 /// Reads Claude Desktop's Code session files to name sessions and tell Desktop sessions from CLI ones.
@@ -13,6 +18,10 @@ public sealed class DesktopSessionIndex : ISessionMetadataSource
     private readonly Func<DateTimeOffset> clock;
     private readonly object gate = new();
     private Dictionary<string, SessionMetadata> byCliSessionId = new(StringComparer.Ordinal);
+    private IReadOnlyList<DesktopProject> projects = [];
+
+    // Session files are large (MCP tool lists and more), so each is parsed once and again only when it changes.
+    private readonly Dictionary<string, (DateTime Modified, long Length, Entry? Entry)> fileCache = new(StringComparer.Ordinal);
     private DateTimeOffset lastScan = DateTimeOffset.MinValue;
 
     public DesktopSessionIndex(string? root = null, Func<DateTimeOffset>? clock = null)
@@ -60,74 +69,155 @@ public sealed class DesktopSessionIndex : ISessionMetadataSource
     /// <summary>The background rescan started by the last miss, for tests.</summary>
     internal Task? PendingScan { get; private set; }
 
+    /// <summary>Folders that Claude Desktop Code sessions ran in, most recently used first. Filled by <see cref="Refresh"/>.</summary>
+    public IReadOnlyList<DesktopProject> Projects
+    {
+        get
+        {
+            lock (this.gate)
+            {
+                return this.projects;
+            }
+        }
+    }
+
     /// <summary>Rescans the session files now, on the calling thread.</summary>
     public void Refresh()
     {
-        var map = Scan(this.root);
+        var entries = this.ReadAll(this.root);
+        var map = new Dictionary<string, SessionMetadata>(StringComparer.Ordinal);
+        foreach (var e in entries)
+        {
+            map[e.CliSessionId] = e.Metadata;
+        }
+
+        var projects = entries
+            .Where(e => !string.IsNullOrEmpty(e.Metadata.Cwd))
+            // macOS folders are case-insensitive, and Desktop records the same folder with different cases.
+            .GroupBy(e => e.Metadata.Cwd!.TrimEnd('/'), StringComparer.OrdinalIgnoreCase)
+            .Select(g => new DesktopProject(g.OrderByDescending(e => e.LastActivity).First().Metadata.Cwd!.TrimEnd('/'), g.Max(e => e.LastActivity)))
+            .OrderByDescending(p => p.LastUsed)
+            .ToList();
+
         lock (this.gate)
         {
             this.byCliSessionId = map;
+            this.projects = projects;
         }
     }
 
-    internal static Dictionary<string, SessionMetadata> Scan(string root)
+    private sealed record Entry(string CliSessionId, SessionMetadata Metadata, DateTimeOffset LastActivity);
+
+    private List<Entry> ReadAll(string root)
     {
-        var map = new Dictionary<string, SessionMetadata>(StringComparer.Ordinal);
+        var list = new List<Entry>();
         if (!Directory.Exists(root))
         {
-            return map;
+            return list;
         }
 
-        IEnumerable<string> files;
+        List<string> files;
         try
         {
-            files = Directory.EnumerateFiles(root, "local_*.json", SearchOption.AllDirectories);
+            files = Directory.EnumerateFiles(root, "local_*.json", SearchOption.AllDirectories).ToList();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return map;
+            return list;
         }
 
-        foreach (var file in files)
+        lock (this.fileCache)
         {
-            var entry = TryRead(file);
-            if (entry is { } e)
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var file in files)
             {
-                map[e.CliSessionId] = e.Metadata;
+                seen.Add(file);
+                FileInfo info;
+                try
+                {
+                    info = new FileInfo(file);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    continue;
+                }
+
+                if (!this.fileCache.TryGetValue(file, out var cached) || cached.Modified != info.LastWriteTimeUtc || cached.Length != info.Length)
+                {
+                    cached = (info.LastWriteTimeUtc, info.Length, TryRead(file));
+                    this.fileCache[file] = cached;
+                }
+
+                if (cached.Entry is { } entry)
+                {
+                    list.Add(entry);
+                }
+            }
+
+            foreach (var gone in this.fileCache.Keys.Where(k => !seen.Contains(k)).ToList())
+            {
+                this.fileCache.Remove(gone);
             }
         }
 
-        return map;
+        return list;
     }
 
-    private static (string CliSessionId, SessionMetadata Metadata)? TryRead(string file)
+    // Reads only the top-level fields the index needs and skips everything nested.
+    private static Entry? TryRead(string file)
     {
         try
         {
-            if (JsonNode.Parse(File.ReadAllText(file)) is not JsonObject obj)
+            var bytes = File.ReadAllBytes(file);
+            var reader = new System.Text.Json.Utf8JsonReader(bytes, new System.Text.Json.JsonReaderOptions { CommentHandling = System.Text.Json.JsonCommentHandling.Skip });
+            if (!reader.Read() || reader.TokenType != System.Text.Json.JsonTokenType.StartObject)
             {
                 return null;
             }
 
-            var cliSessionId = Str(obj, "cliSessionId");
-            if (string.IsNullOrEmpty(cliSessionId))
+            var fields = new Dictionary<string, string?>(StringComparer.Ordinal);
+            bool? archived = null;
+            long? lastActivityMs = null;
+            while (reader.Read() && reader.TokenType == System.Text.Json.JsonTokenType.PropertyName)
+            {
+                var name = reader.GetString()!;
+                reader.Read();
+                switch (reader.TokenType)
+                {
+                    case System.Text.Json.JsonTokenType.String:
+                        fields[name] = reader.GetString();
+                        break;
+                    case System.Text.Json.JsonTokenType.True or System.Text.Json.JsonTokenType.False when name == "isArchived":
+                        archived = reader.GetBoolean();
+                        break;
+                    case System.Text.Json.JsonTokenType.Number when name == "lastActivityAt" && reader.TryGetInt64(out var ms):
+                        lastActivityMs = ms;
+                        break;
+                    case System.Text.Json.JsonTokenType.StartObject or System.Text.Json.JsonTokenType.StartArray:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            var cliSessionId = fields.GetValueOrDefault("cliSessionId");
+            if (string.IsNullOrEmpty(cliSessionId) || archived == true)
             {
                 return null;
             }
 
-            return (cliSessionId, new SessionMetadata(
-                SessionSource.ClaudeDesktop,
-                Title: Str(obj, "title"),
-                Cwd: Str(obj, "originCwd") ?? Str(obj, "cwd"),
-                Branch: Str(obj, "branch"),
-                Model: Str(obj, "model")));
+            return new Entry(
+                cliSessionId,
+                new SessionMetadata(
+                    SessionSource.ClaudeDesktop,
+                    Title: fields.GetValueOrDefault("title"),
+                    Cwd: fields.GetValueOrDefault("originCwd") ?? fields.GetValueOrDefault("cwd"),
+                    Branch: fields.GetValueOrDefault("branch"),
+                    Model: fields.GetValueOrDefault("model")),
+                lastActivityMs is { } t ? DateTimeOffset.FromUnixTimeMilliseconds(t) : DateTimeOffset.MinValue);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidOperationException)
         {
             return null;
         }
     }
-
-    private static string? Str(JsonObject obj, string key) =>
-        obj.TryGetPropertyValue(key, out var node) && node is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
 }

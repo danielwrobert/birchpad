@@ -35,7 +35,8 @@ public sealed record SessionSnapshot(
     string? Model,
     string? PermissionMode,
     string? LastToolName,
-    int? Slot)
+    int? Slot,
+    string? TranscriptPath = null)
 {
     /// <summary>The short label for a tile: the session title, else the last folder of its cwd.</summary>
     public string DisplayName

@@ -62,16 +62,25 @@ Each key stores an action ID such as `$BirchpadAgentHub___Loupedeck.BirchpadAgen
 
 ## Keys
 
-- Session slot 1 to 16: a live tile per session; press to open it in Claude Desktop or its iTerm tab.
-- Allow, Always allow, Deny: answer the oldest held permission request.
-- Stop: send Escape to the most recently active session.
-- Next: open the session waiting longest for you.
-- Clear: free the slots of finished sessions.
-- Routines folder: Claude Desktop scheduled tasks and cloud routines, soonest first, with the next run time.
-- Other sessions folder: Remote Control and cloud sessions from the helper; local sessions already have tiles.
-- Artifacts, Chats: open those pages on claude.ai in the default browser.
-- Refresh cloud: shows how old the cloud lists are; press to fetch them now.
+Agent Hub keys are folders from the home page design in `docs/workflow-design.md`.
+Every folder puts Back in the top-left key, fills the other keys at run time, and gives the bottom-right key to More when a list runs past one page.
+The placement rules live in `Birchpad.Core.Menu.MenuLayout` and are unit tested; `src/Shared/MenuFolder.cs` applies them.
 
-Tile colors: blue working, amber needs approval, purple question, green done, red failed, gray ready.
+- Sessions: every agent session with a status ring (pulsing while it waits for you), then sessions on other machines from the cloud helper, then Clear finished.
+  Press a session for Open, Allow, Deny, Always, and Stop.
+- Scheduled: Claude Desktop scheduled tasks and cloud routines, soonest first, then Refresh.
+- Claude usage, Codex usage, and Usage (both, for iTerm): the key shows 5-hour and weekly use; the folder shows limits with reset times, context, and history.
+- Next waiting: opens the session that has waited longest for you.
+
+Ring colors: blue working, amber needs approval, purple question, green done, red failed, gray idle.
+Usage rings: green under 70%, amber from 70%, red from 90%.
 
 CLI tiles find their iTerm tab by matching the session's folder to iTerm's `session.path`, which needs iTerm shell integration.
+Codex tiles open their thread with `codex://threads/<id>` unless an iTerm tab is in the thread's folder.
+
+## Usage sources
+
+- Claude 5-hour and weekly limits: `rate_limits` in the status line JSON, with Claude Desktop's `plan-usage-history.json` as a fallback.
+- Claude context, cost, and lines: the most recently updated session's status line.
+- Codex limits, plan, credits, and history: the Codex app server (`account/rateLimits/read`, `account/usage/read`).
+- Codex context: the last `token_count` event in the latest thread's rollout log, found through `~/.codex/state_5.sqlite`.

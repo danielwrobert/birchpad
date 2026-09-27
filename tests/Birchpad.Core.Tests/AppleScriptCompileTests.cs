@@ -30,6 +30,12 @@ public sealed class AppleScriptCompileTests : IDisposable
         { "paste submit", MacAutomation.PasteScript(MacAutomation.CodexBundleId, "Review \"this\"", submit: true) },
         { "command key", MacAutomation.CommandKeyScript(MacAutomation.ClaudeBundleId, 'b', shift: false) },
         { "command shift key", MacAutomation.CommandKeyScript(MacAutomation.ClaudeBundleId, 'd', shift: true) },
+        { "iterm list", ITermController.ListScript },
+        { "iterm focus by id", ITermController.FocusScript("31FFE014-86E0-460B-9424-62AF6C931680") },
+        { "iterm new tab", ITermController.NewTabScript("/Users/me/it's here", "claude") },
+        { "iterm new shell tab", ITermController.NewTabScript(null, null) },
+        { "paste front submit", MacAutomation.PasteFrontScript("/review", submit: true) },
+        { "paste front only", MacAutomation.PasteFrontScript("/cms-cultivator:pr-create ", submit: false) },
         { "paste only", MacAutomation.PasteScript(MacAutomation.ClaudeBundleId, "Explain", submit: false) },
     };
 
@@ -45,6 +51,19 @@ public sealed class AppleScriptCompileTests : IDisposable
         var (exitCode, _, error) = ProcessRunner.Run(Compiler, ["-e", script, "-o", this.output], TimeSpan.FromSeconds(20));
 
         Assert.True(exitCode == 0, $"{name}: {error}");
+    }
+
+    [Fact]
+    public void Press_button_script_compiles_as_javascript()
+    {
+        if (!File.Exists(Compiler))
+        {
+            return; // osacompile is only on macOS.
+        }
+
+        var (exitCode, _, error) = ProcessRunner.Run(Compiler, ["-l", "JavaScript", "-e", MacAutomation.PressButtonScript, "-o", this.output], TimeSpan.FromSeconds(20));
+
+        Assert.True(exitCode == 0, error);
     }
 
     [Fact]

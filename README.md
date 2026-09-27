@@ -2,10 +2,13 @@
 
 Four Logi Actions SDK plugins that put Claude Code, Codex, and iTerm on a Logitech MX Keypad.
 
-- Birchpad Agent Hub (universal): live session tiles for Claude Code and Codex, permission answers, interrupt, routines, cloud sessions, and Codex usage.
-- Birchpad Claude (Claude Desktop): chats, Code sessions, panels, saved prompts, and stop.
-- Birchpad Codex (ChatGPT app): chats, panels, saved prompts, and stop.
-- Birchpad iTerm (iTerm2): tabs, splits, broadcast, saved commands, and agent keys.
+- Birchpad Agent Hub (universal): Sessions with status rings and per-session approvals, Scheduled, Usage, and Next waiting.
+- Birchpad Claude (Claude Desktop): New, Prompts, Chats, Projects, and Settings.
+- Birchpad Codex (ChatGPT app): New, Prompts, Chats, Projects, Scheduled, and Settings.
+- Birchpad iTerm (iTerm2): New, Commands, Tabs, Agent keys, and Settings.
+
+Each app opens on a home page of categories; every category opens pages listed at run time, with Back in the top-left key.
+The design is in `docs/workflow-design.md`, and each app plugin ships its home page as a default profile.
 
 The plan is in `2026-09-26-logi-mx-keypad-plugins.md`.
 Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, and `docs/iterm.md`.
@@ -58,7 +61,7 @@ These live in `~/Library/Application Support/Birchpad/` and are created on first
 - `iterm-commands.json`: saved commands for the iTerm plugin.
 - `cloud-cache.json`: the last cloud helper result.
 
-Keys update when `prompts.json` or `iterm-commands.json` is saved.
+The Prompts and Commands folders reread their file each time they open.
 
 ## Permissions
 

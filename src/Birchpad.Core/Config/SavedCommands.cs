@@ -2,8 +2,11 @@ using System.Text.Json;
 
 namespace Birchpad.Core.Config;
 
-/// <summary>A named shell command for a keypad key.</summary>
-public sealed record SavedCommand(string Name, string Command);
+/// <summary>
+/// A named shell command for a keypad key. With <paramref name="Submit"/> false the command is typed
+/// without pressing Return, so it can be finished by hand.
+/// </summary>
+public sealed record SavedCommand(string Name, string Command, bool Submit = true);
 
 /// <summary>A named prompt that a key pastes into an agent app.</summary>
 public sealed record SavedPrompt(string Name, string Text);
@@ -16,10 +19,28 @@ public static class SavedEntries
 {
     public static readonly IReadOnlyList<SavedCommand> StarterCommands =
     [
-        new("ddev start", "ddev start"),
-        new("drush cr", "ddev drush cr"),
-        new("theme build", "ddev theme-build"),
         new("git status", "git status"),
+        new("git pull", "git pull"),
+        new("git checkout main", "git checkout main"),
+        new("ddev init", "ddev init"),
+        new("ddev refresh", "ddev refresh"),
+        new("ddev drush", "ddev drush ", Submit: false),
+        new("ddev terminus", "ddev terminus ", Submit: false),
+        new("ddev wp", "ddev wp ", Submit: false),
+    ];
+
+    /// <summary>
+    /// Starter slash commands shared by every app. They are typed without Return where a command usually takes
+    /// arguments; edit the file to add your team's commands.
+    /// </summary>
+    public static readonly IReadOnlyList<SavedCommand> StarterSlashCommands =
+    [
+        new("/clear", "/clear"),
+        new("/compact", "/compact"),
+        new("/model", "/model"),
+        new("/review", "/review"),
+        new("/init", "/init"),
+        new("/mcp", "/mcp"),
     ];
 
     public static readonly IReadOnlyList<SavedPrompt> StarterPrompts =
@@ -38,6 +59,9 @@ public static class SavedEntries
 
     public static IReadOnlyList<SavedCommand> LoadCommands(string file, out string? error) =>
         LoadOrCreate(file, StarterCommands, c => c.Name, c => c.Command, (c, name) => c with { Name = name }, out error);
+
+    public static IReadOnlyList<SavedCommand> LoadSlashCommands(string file, out string? error) =>
+        LoadOrCreate(file, StarterSlashCommands, c => c.Name, c => c.Command, (c, name) => c with { Name = name }, out error);
 
     public static IReadOnlyList<SavedPrompt> LoadPrompts(string file, out string? error) =>
         LoadOrCreate(file, StarterPrompts, p => p.Name, p => p.Text, (p, name) => p with { Name = name }, out error);

@@ -400,3 +400,6 @@ FodyWeavers.xsd
 .DS_Store
 # Packaged plugins
 dist/
+
+# Profile import experiments
+profiles/tests/

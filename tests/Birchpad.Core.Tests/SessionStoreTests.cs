@@ -146,6 +146,18 @@ public class SessionStoreTests
     }
 
     [Fact]
+    public void Most_urgent_can_be_scoped_to_one_agent()
+    {
+        var store = new SessionStore();
+        store.Apply(new HookEvent("claude", "c", "PermissionRequest", ToolName: "Bash"), T0);
+        store.Apply(new HookEvent("codex", "x", "Stop"), T0.AddMinutes(1));
+
+        Assert.Equal("c", store.MostUrgent()!.SessionId);
+        Assert.Equal("x", store.MostUrgent("codex")!.SessionId);
+        Assert.Equal("c", store.MostUrgent("claude")!.SessionId);
+    }
+
+    [Fact]
     public void Clear_finished_keeps_active_sessions()
     {
         var store = new SessionStore();

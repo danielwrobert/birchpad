@@ -16,18 +16,22 @@ The plugin log is `~/Library/Application Support/Logi/LogiPluginService/Logs/plu
 
 ## Keys
 
-- Pane: New tab, Split right, Split down, Clear, Broadcast tab, Broadcast off.
-- Agent key: Esc, Mode (Shift+Tab), Ctrl-C, plus `/clear`, `/compact`, `/model`, `/remote-control` for Claude Code and `/new`, `/compact`, `/model`, `/status` for Codex.
-- Launch agent: New claude, New codex; each opens a split in the current folder and starts the CLI.
-- Saved command: one key per entry in `~/Library/Application Support/Birchpad/iterm-commands.json`.
+Each key is a folder with Back in the top-left key.
 
-Agent keys and saved commands type into the current session of the front window.
+- New: Shell tab, claude, codex, claude in a split, codex in a split, all in the current folder.
+- Commands: one key per saved command.
+- Tabs: every iTerm pane by folder, with the status ring of the agent running there; press to focus it.
+  Agent status comes from Agent Hub's `/sessions` route.
+- Agent keys: Esc, Mode (Shift+Tab), Ctrl-C, Clear, Compact, Model, Context, and Usage.
+  Context and Usage send `/context` and `/usage` to Claude Code and `/status` to Codex, depending on which agent Agent Hub has in the current tab's folder.
+- Settings: `/mcp`, `/plugins`, `/config`, `/hooks`, split right and down, broadcast on and off, and clear.
 
 ## Saved commands
 
-The file is a JSON array of `{"name": "...", "command": "..."}` objects.
-It is created with four starters on first load, and the keys update when the file is saved.
+The file is a JSON array of `{"name": "...", "command": "...", "submit": true}` objects.
+With `"submit": false` the command is typed without pressing Return, so it can be finished by hand; keep its trailing space.
 Entries with a blank name or command, or a repeated name, are skipped.
+The folder reads the file each time it opens.
 
 ## Permissions
 

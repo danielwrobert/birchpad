@@ -28,6 +28,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin
             if (this.Hub.Start(out var error))
             {
                 PluginLog.Info($"Agent Hub listening on 127.0.0.1:{port}");
+                Birchpad.Core.Http.HubClient.RecordPort(port);
                 this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, null);
             }
             else

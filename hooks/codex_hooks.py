@@ -22,6 +22,10 @@ from pathlib import Path
 
 SCRIPT_NAME = "birchpad-codex-hook.sh"
 
+# Names used before the rename to Birchpad; entries and files with these are replaced and cleaned up.
+LEGACY_SCRIPT_NAMES = ("devdeck-codex-hook.sh",)
+LEGACY_DESCRIPTIONS = ("Lifecycle hooks, including DevDeck Agent Hub status.",)
+
 # Written only when this script creates hooks.json, and removed with the last Birchpad entry.
 DESCRIPTION = "Lifecycle hooks, including Birchpad Agent Hub status."
 
@@ -42,7 +46,8 @@ PERMISSION_TIMEOUT_SECONDS = 330
 
 
 def is_ours(hook):
-    return hook.get("type") == "command" and SCRIPT_NAME in str(hook.get("command", ""))
+    command = str(hook.get("command", ""))
+    return hook.get("type") == "command" and any(name in command for name in (SCRIPT_NAME, *LEGACY_SCRIPT_NAMES))
 
 
 def remove_ours(hooks):
@@ -119,9 +124,11 @@ def main():
 
     if not hooks:
         del config["hooks"]
-        if config.get("description") == DESCRIPTION:
+        if config.get("description") in (DESCRIPTION, *LEGACY_DESCRIPTIONS):
             del config["description"]
     else:
+        if config.get("description") in LEGACY_DESCRIPTIONS:
+            config["description"] = DESCRIPTION
         config.setdefault("description", DESCRIPTION)
 
     if config:
@@ -129,6 +136,8 @@ def main():
     elif hooks_file.exists():
         hooks_file.unlink()
 
+    for name in LEGACY_SCRIPT_NAMES:
+        (args.codex_home / "hooks" / name).unlink(missing_ok=True)
     if args.action == "remove":
         (args.codex_home / "hooks" / SCRIPT_NAME).unlink(missing_ok=True)
 

@@ -1,160 +1,171 @@
 #!/usr/bin/env python3
-"""Generate default keypad layouts for the Birchpad plugins.
+"""Generate the Birchpad default keypad profiles.
 
-Each layout is written as a ProfileInfo.json in the schema Logi Plugin Service
-stores under Applications/Loupedeck70/<app>/Profiles/<id>/. Packing one into a
-.lp5 needs the archive layout from a profile exported by Options+ (not yet done).
+Each app plugin gets one home page from docs/workflow-design.md. Every key is a
+category that opens a folder listing its items at run time; no key is bound to a
+specific session or item.
 
-  profiles.py check   verify every placed key names an action that exists
-  profiles.py write   check, then write profiles/generated/<app>/ProfileInfo.json
+The .lp5 archive copies the layout of a profile exported from Options+
+(profiles/exported/): ProfileInfo.json, ApplicationInfo.json, ApplicationIcon.png,
+and metadata/LoupedeckPackage.yaml, AdvancedInfo.json, and ProfilePreview.json.
+
+  profiles.py check   verify every placed key names an action or folder that exists
+  profiles.py write   check, then write the .lp5 files:
+                      src/<Plugin>Plugin/package/profiles/DefaultProfile70mac.lp5
+                      profiles/generated/<Display name>.lp5 (for Import in Options+)
 """
 
+import base64
+import datetime
+import io
 import json
 import re
 import sys
 import uuid
+import zipfile
 from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "profiles" / "generated"
 KEYS_PER_PAGE = 9
+FONT = "/System/Library/Fonts/Helvetica.ttc"
+
+# Written into every profile, in the form the Options+ export uses.
+NOW = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f0Z")
+
+# Package versions use four parts, as in the Options+ export.
+PACKAGE_VERSION = "1.0.0.1"
 
 # Stable IDs so regenerating a profile does not look like a new one.
 NAMESPACE = uuid.UUID("5b0f6a52-8f5e-4f8e-9a57-0d3c6f1e2a10")
 
 
-def action(plugin, cls, param=None):
+def command(plugin, cls, param=None):
     ident = f"${plugin}___Loupedeck.{plugin}Plugin.Actions.{cls}"
     return f"{ident}___{param}" if param is not None else ident
 
 
-def hub(cls, param=None):
-    return action("BirchpadAgentHub", cls, param)
+def folder(plugin, cls):
+    # The form Options+ stores for a dynamic folder key, taken from an exported profile.
+    return f"${plugin}___#DynamicFolder___DynamicFolder#Loupedeck.{plugin}Plugin.Actions.{cls}"
 
 
-# Page 1 of every app profile: status is visible whichever app is in front.
-AGENTS_PAGE = ("Agents", [
-    hub("SessionSlotCommand", "1"), hub("SessionSlotCommand", "2"), hub("SessionSlotCommand", "3"),
-    hub("SessionSlotCommand", "4"), hub("SessionSlotCommand", "5"), hub("NextWaitingCommand"),
-    hub("AnswerCommand", "allow"), hub("AnswerCommand", "deny"), hub("InterruptCommand"),
-])
+SCHEDULED = folder("BirchpadAgentHub", "ScheduledFolder")
 
-
-def claude(param):
-    return action("BirchpadClaude", "AppCommand", param)
-
-
-def codex(param):
-    return action("BirchpadCodex", "AppCommand", param)
-
-
-def iterm(cls, param):
-    return action("BirchpadITerm", cls, param)
-
-
+# Keys run top row first; key 7 (bottom left) is Next waiting on every home page.
 PROFILES = {
     "claude": {
         "applicationName": "@_birchpadclaude",
         "displayName": "Birchpad Claude",
         "plugin": "BirchpadClaude",
-        "pages": [
-            AGENTS_PAGE,
-            ("Claude", [
-                claude("new-chat"), claude("new-code"), claude("needs-input"),
-                claude("chat-cowork"), claude("code"), claude("palette"),
-                claude("previous-session"), claude("next-session"), claude("stop"),
-            ]),
-            ("More", [
-                action("BirchpadClaude", "ClaudePromptCommand", "Explain"), action("BirchpadClaude", "ClaudePromptCommand", "Review"), action("BirchpadClaude", "ClaudePromptCommand", "Tests"),
-                claude("sidebar"), claude("terminal"), claude("changes"),
-                claude("side-chat"), claude("dictate"), claude("search"),
-            ]),
+        "bundle": "com.anthropic.claudefordesktop",
+        "keys": [
+            (folder("BirchpadAgentHub", "ClaudeSessionsFolder"), "Sessions"), (folder("BirchpadClaude", "ClaudeNewFolder"), "New"), (folder("BirchpadClaude", "ClaudePromptsFolder"), "Prompts"),
+            (folder("BirchpadClaude", "ClaudeChatsFolder"), "Chats"), (folder("BirchpadClaude", "ClaudeProjectsFolder"), "Projects"), (SCHEDULED, "Scheduled"),
+            (command("BirchpadAgentHub", "NextWaitingCommand", "claude"), "Next waiting"), (folder("BirchpadAgentHub", "ClaudeUsageFolder"), "Usage"), (folder("BirchpadClaude", "ClaudeSettingsFolder"), "Settings"),
         ],
     },
     "codex": {
         "applicationName": "@_birchpadcodex",
         "displayName": "Birchpad Codex",
         "plugin": "BirchpadCodex",
-        "pages": [
-            AGENTS_PAGE,
-            ("Codex", [
-                codex("new-chat"), codex("temporary-chat"), codex("review-panel"),
-                codex("previous-chat"), codex("next-chat"), codex("sidebar"),
-                codex("file-tree"), codex("terminal"), codex("stop"),
-            ]),
-            ("More", [
-                action("BirchpadCodex", "CodexPromptCommand", "Explain"), action("BirchpadCodex", "CodexPromptCommand", "Review"), action("BirchpadCodex", "CodexPromptCommand", "Tests"),
-                hub("CodexUsageCommand"), codex("dictate"), None,
-                None, None, None,
-            ]),
+        "bundle": "com.openai.codex",
+        "keys": [
+            (folder("BirchpadAgentHub", "CodexSessionsFolder"), "Sessions"), (folder("BirchpadCodex", "CodexNewFolder"), "New"), (folder("BirchpadCodex", "CodexPromptsFolder"), "Prompts"),
+            (folder("BirchpadCodex", "CodexChatsFolder"), "Chats"), (folder("BirchpadCodex", "CodexProjectsFolder"), "Projects"), (folder("BirchpadCodex", "CodexScheduledFolder"), "Scheduled"),
+            (command("BirchpadAgentHub", "NextWaitingCommand", "codex"), "Next waiting"), (folder("BirchpadAgentHub", "CodexUsageFolder"), "Usage"), (folder("BirchpadCodex", "CodexSettingsFolder"), "Settings"),
         ],
     },
     "iterm": {
         "applicationName": "@_birchpaditerm",
         "displayName": "Birchpad iTerm",
         "plugin": "BirchpadITerm",
-        "pages": [
-            AGENTS_PAGE,
-            ("iTerm", [
-                iterm("PaneCommand", "new-tab"), iterm("PaneCommand", "split-vertical"), iterm("PaneCommand", "split-horizontal"),
-                iterm("LaunchAgentCommand", "claude"), iterm("LaunchAgentCommand", "codex"), iterm("PaneCommand", "clear-buffer"),
-                iterm("AgentKeyCommand", "escape"), iterm("AgentKeyCommand", "shift-tab"), iterm("AgentKeyCommand", "control-c"),
-            ]),
-            ("Commands", [
-                iterm("SavedCommandCommand", "ddev start"), iterm("SavedCommandCommand", "drush cr"), iterm("SavedCommandCommand", "theme build"),
-                iterm("SavedCommandCommand", "git status"), iterm("AgentKeyCommand", "claude-clear"), iterm("AgentKeyCommand", "claude-compact"),
-                iterm("AgentKeyCommand", "claude-model"), iterm("PaneCommand", "broadcast-tab"), iterm("PaneCommand", "broadcast-off"),
-            ]),
+        "bundle": "com.googlecode.iterm2",
+        "keys": [
+            (folder("BirchpadITerm", "ITermTabsFolder"), "Tabs"), (command("BirchpadITerm", "ITermNewTabCommand"), "New tab"), (folder("BirchpadITerm", "ITermCommandsFolder"), "Commands"),
+            (folder("BirchpadITerm", "ITermSlashCommandsFolder"), "Slash commands"), (None, None), (folder("BirchpadITerm", "ITermAgentKeysFolder"), "Agent keys"),
+            (command("BirchpadAgentHub", "NextWaitingCommand", "all"), "Next waiting"), (folder("BirchpadAgentHub", "AllUsageFolder"), "Usage"), (folder("BirchpadITerm", "ITermSettingsFolder"), "Settings"),
         ],
     },
 }
 
-# Parameters that come from settings files; the starters are what a fresh install has.
-DYNAMIC_PARAMETERS = {
-    "ClaudePromptCommand": {"Explain", "Review", "Tests"},
-    "CodexPromptCommand": {"Explain", "Review", "Tests"},
-    "SavedCommandCommand": {"ddev start", "drush cr", "theme build", "git status"},
-    "SessionSlotCommand": {str(i) for i in range(1, 17)},
-}
+CLASS_DECL = re.compile(r"public (?:abstract )?class (\w+)\s*:\s*(\w+)")
+ABSTRACT_DECL = re.compile(r"public abstract class (\w+)")
 
-PARAM_CALL = re.compile(r'this\.(?:Add|Menu|Link|Key|AddParameter)\(\s*"([^"]+)"')
+
+PARAM_DECL = re.compile(r'AddParameter\(\s*"([^"]+)"')
+
+
+def known_parameters():
+    """Maps each class to the parameters its source file declares with AddParameter."""
+    params = {}
+    for source in (ROOT / "src").rglob("*.cs"):
+        if "/bin/" in str(source) or "/obj/" in str(source):
+            continue
+        text = source.read_text()
+        declared = set(PARAM_DECL.findall(text))
+        for cls, _ in CLASS_DECL.findall(text):
+            params[cls] = declared
+    return params
 
 
 def known_actions():
-    """Maps each plugin's action class to its parameters, read from the C# sources."""
-    known = {}
-    for plugin_dir in (ROOT / "src").glob("*Plugin"):
-        plugin = plugin_dir.name.removesuffix("Plugin")
-        for source in (plugin_dir / "Actions").glob("*.cs"):
-            text = source.read_text()
-            if re.search(r"\babstract class\b", text):
-                continue
-            cls = source.stem
-            params = set(PARAM_CALL.findall(text)) | DYNAMIC_PARAMETERS.get(cls, set())
-            known[(plugin, cls)] = params
-    return known
+    """Maps (plugin, class) to 'command' or 'folder', read from the C# sources and src/Shared."""
+    bases, abstract, owner = {}, set(), {}
+    for source in (ROOT / "src").rglob("*.cs"):
+        if "/bin/" in str(source) or "/obj/" in str(source):
+            continue
+        text = source.read_text()
+        plugin = next((p.name.removesuffix("Plugin") for p in source.parents if p.name.endswith("Plugin") and p.parent.name == "src"), None)
+        for cls, base in CLASS_DECL.findall(text):
+            bases[cls] = base
+            owner[cls] = plugin
+        abstract.update(ABSTRACT_DECL.findall(text))
+
+    def root(cls):
+        seen = set()
+        while cls in bases and cls not in seen:
+            seen.add(cls)
+            if bases[cls] in ("MenuFolder", "PluginDynamicFolder"):
+                return "folder"
+            if bases[cls] in ("PluginDynamicCommand", "HubCommand"):
+                return "command"
+            cls = bases[cls]
+        return None
+
+    return {(owner[c], c): root(c) for c in bases if owner.get(c) and c not in abstract and root(c)}
+
+
+ID_PATTERN = re.compile(r"\$([A-Za-z0-9]+)___(#DynamicFolder___DynamicFolder#)?Loupedeck\.[A-Za-z0-9]+\.Actions\.([A-Za-z0-9]+)(?:___(.+))?")
 
 
 def check():
     known = known_actions()
+    parameters = known_parameters()
     errors = []
     for name, profile in PROFILES.items():
-        for page_name, keys in profile["pages"]:
-            if len(keys) != KEYS_PER_PAGE:
-                errors.append(f"{name}/{page_name}: {len(keys)} keys, expected {KEYS_PER_PAGE}")
-            for key in filter(None, keys):
-                m = re.fullmatch(r"\$([A-Za-z0-9]+)___Loupedeck\.[A-Za-z0-9]+\.Actions\.([A-Za-z0-9]+)(?:___(.+))?", key)
-                if not m:
-                    errors.append(f"{name}/{page_name}: malformed {key}")
-                    continue
-                plugin, cls, param = m.groups()
-                params = known.get((plugin, cls))
-                if params is None:
-                    errors.append(f"{name}/{page_name}: no action class {plugin}.{cls}")
-                elif param is not None and param not in params:
-                    errors.append(f"{name}/{page_name}: {plugin}.{cls} has no parameter '{param}'")
-                elif param is None and params:
-                    errors.append(f"{name}/{page_name}: {plugin}.{cls} needs a parameter")
+        if len(profile["keys"]) != KEYS_PER_PAGE:
+            errors.append(f"{name}: {len(profile['keys'])} keys, expected {KEYS_PER_PAGE}")
+        for action, _ in profile["keys"]:
+            if action is None:
+                continue
+            m = ID_PATTERN.fullmatch(action)
+            if not m:
+                errors.append(f"{name}: malformed {action}")
+                continue
+            plugin, is_folder, cls, param = m.groups()
+            kind = known.get((plugin, cls))
+            expected = "folder" if is_folder else "command"
+            if kind is None:
+                errors.append(f"{name}: no action class {plugin}.{cls}")
+            elif kind != expected:
+                errors.append(f"{name}: {plugin}.{cls} is a {kind}, placed as a {expected}")
+            elif param is not None and param not in parameters.get(cls, set()):
+                errors.append(f"{name}: {plugin}.{cls} has no parameter '{param}'")
+            elif param is None and parameters.get(cls) and kind == "command":
+                errors.append(f"{name}: {plugin}.{cls} needs a parameter")
     return errors
 
 
@@ -162,24 +173,7 @@ def ident(*parts):
     return uuid.uuid5(NAMESPACE, "/".join(parts)).hex.upper()
 
 
-def build(name, profile):
-    def page(page_name, keys):
-        return {
-            "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutPage7, LoupedeckService",
-            "name": ident(name, "page", page_name),
-            "displayName": page_name,
-            "description": None,
-            "controls": [
-                {
-                    "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
-                    "controlId": i,
-                    "pressAction": key,
-                    "rotateAction": None,
-                }
-                for i, key in enumerate(keys)
-            ],
-        }
-
+def profile_info(name, profile):
     workspace = ident(name, "workspace")
     return {
         "$type": "Loupedeck.Service.ApplicationProfile, LoupedeckService",
@@ -191,7 +185,8 @@ def build(name, profile):
         "applicationName": profile["applicationName"],
         "nativePluginName": profile["plugin"],
         "hasNativePlugin": True,
-        "additionalNativePluginNames": ["AgentHub"],
+        "additionalNativePluginNames": ["DefaultMac"],
+        "lastModifiedTimeUtc": NOW,
         "profileSettings": {"$type": "Loupedeck.DictionaryNoCase`1[[System.String, System.Private.CoreLib]], PluginApi"},
         "actionImages90": None,
         "actionImages60": None,
@@ -201,6 +196,8 @@ def build(name, profile):
         "macroAdjustments": [],
         "profileCommands": [],
         "profileAdjustments": [],
+        # Same service version as the Options+ export; without it the service may treat the profile as an old format to convert.
+        "conversionHistory": f"{NOW} bj 6.4.1.3246\r\n",
         "packageName": None,
         "packageVersion": None,
         "profileActions": [],
@@ -221,7 +218,21 @@ def build(name, profile):
                     "name": workspace,
                     "displayName": "Workspace 1",
                     "description": None,
-                    "pressPages": [page(n, k) for n, k in profile["pages"]],
+                    "pressPages": [{
+                        "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutPage7, LoupedeckService",
+                        "name": ident(name, "page", "home"),
+                        "displayName": "Home",
+                        "description": None,
+                        "controls": [
+                            {
+                                "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
+                                "controlId": i,
+                                "pressAction": action,
+                                "rotateAction": None,
+                            }
+                            for i, (action, _) in enumerate(profile["keys"])
+                        ],
+                    }],
                     "rotatePages": [],
                 }],
                 "homeWorkspaceName": workspace,
@@ -231,6 +242,71 @@ def build(name, profile):
     }
 
 
+def application_info(profile, profile_id):
+    return {
+        "$type": "Loupedeck.Service.SupportedApplicationInfo, LoupedeckService",
+        "name": profile["applicationName"],
+        "displayName": profile["displayName"],
+        "description": None,
+        "deviceType": "Loupedeck70",
+        "nativePluginName": profile["plugin"],
+        "hasNativePlugin": True,
+        "processOrBundleName": profile["bundle"],
+        "modes": [{"$type": "Loupedeck.Service.ApplicationMode, LoupedeckService", "name": "main", "parentModeName": None, "displayName": "Main"}],
+        "defaultProfileName": profile_id,
+        "isEnabled": True,
+    }
+
+
+def preview_tile(label):
+    img = Image.new("RGB", (80, 80), (38, 38, 38))
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype(FONT, 13)
+    words, lines, line = (label or "").split(), [], ""
+    for word in words:
+        trial = f"{line} {word}".strip()
+        if draw.textlength(trial, font=font) > 72 and line:
+            lines.append(line)
+            line = word
+        else:
+            line = trial
+    if line:
+        lines.append(line)
+    y = 40 - (len(lines) * 16) // 2
+    for text in lines:
+        draw.text((40 - draw.textlength(text, font=font) / 2, y), text, font=font, fill=(255, 255, 255))
+        y += 16
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def preview(profile):
+    return {
+        "buttonPages": [
+            {"controlId": i, "actionName": action, "displayName": label, "description": label, "image": preview_tile(label)}
+            for i, (action, label) in enumerate(profile["keys"])
+            if action is not None
+        ],
+        "encoderPages": [],
+    }
+
+
+def lp5(name, profile):
+    info = profile_info(name, profile)
+    icon = ROOT / "src" / f"{profile['plugin']}Plugin" / "package" / "metadata" / "Icon256x256.png"
+    package_yaml = f"type: Profile5\nname: {info['name']}\ndisplayName: {profile['displayName']}\nversion: {PACKAGE_VERSION}\n"
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("ApplicationIcon.png", icon.read_bytes())
+        z.writestr("ApplicationInfo.json", json.dumps(application_info(profile, info["name"]), indent=4))
+        z.writestr("ProfileInfo.json", json.dumps(info, indent=4))
+        z.writestr("metadata/LoupedeckPackage.yaml", package_yaml)
+        z.writestr("metadata/ProfilePreview.json", json.dumps(preview(profile), indent=4))
+        z.writestr("metadata/AdvancedInfo.json", json.dumps({"additionalPluginNames": ["BirchpadAgentHub"]}, indent=4))
+    return buf.getvalue()
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "check"
     errors = check()
@@ -238,13 +314,16 @@ def main():
         print(f"error: {error}")
     if errors:
         return 1
-    print(f"ok: {sum(len(p['pages']) for p in PROFILES.values())} pages across {len(PROFILES)} profiles")
+    print(f"ok: {len(PROFILES)} home pages")
     if mode == "write":
+        OUT.mkdir(parents=True, exist_ok=True)
         for name, profile in PROFILES.items():
-            path = OUT / name / "ProfileInfo.json"
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(build(name, profile), indent=2) + "\n")
-            print(path.relative_to(ROOT))
+            data = lp5(name, profile)
+            shipped = ROOT / "src" / f"{profile['plugin']}Plugin" / "package" / "profiles" / "DefaultProfile70mac.lp5"
+            shipped.parent.mkdir(parents=True, exist_ok=True)
+            shipped.write_bytes(data)
+            (OUT / f"{profile['displayName']}.lp5").write_bytes(data)
+            print(shipped.relative_to(ROOT))
     return 0
 
 

@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace Birchpad.Core.Mac;
 
 /// <summary>
@@ -68,6 +70,24 @@ public sealed class MacAutomation
     public bool PasteInto(string bundleId, string text, bool submit) =>
         this.AppleScript(PasteScript(bundleId, text, submit), TimeSpan.FromSeconds(15)) is not null;
 
+    /// <summary>Pastes into whatever app is in front, then presses Return when <paramref name="submit"/> is set.</summary>
+    public bool PasteIntoFront(string text, bool submit) =>
+        this.AppleScript(PasteFrontScript(text, submit), TimeSpan.FromSeconds(15)) is not null;
+
+    internal static string PasteFrontScript(string text, bool submit) => $$"""
+        set previous to ""
+        try
+          set previous to the clipboard as text
+        end try
+        set the clipboard to {{Quote(text)}}
+        tell application "System Events"
+          keystroke "v" using command down
+          {{(submit ? "delay 0.2\n      key code 36" : string.Empty)}}
+        end tell
+        delay 0.2
+        set the clipboard to previous
+        """;
+
     internal static string PasteScript(string bundleId, string text, bool submit) => $$"""
         set previous to ""
         try
@@ -96,6 +116,90 @@ public sealed class MacAutomation
         delay 0.2
         tell application "System Events" to keystroke {{Quote(key.ToString())}} using {{(shift ? "{command down, shift down}" : "command down")}}
         """;
+
+    /// <summary>
+    /// Presses the first button in an app's front window whose accessibility name is <paramref name="name"/>,
+    /// such as a sidebar entry in Claude Desktop that no link or menu reaches. Returns false when none is found.
+    /// </summary>
+    public bool PressButton(string bundleId, string name) =>
+        this.JavaScript(PressButtonScript, [bundleId, name], TimeSpan.FromSeconds(15)) == "pressed";
+
+    /// <summary>
+    /// Opens a page in Claude Desktop's Chat sidebar by pressing its button, switching to the Chat view first
+    /// when the sidebar is not showing (in the Code view it holds other buttons).
+    /// </summary>
+    public bool OpenClaudeSidebarPage(string name)
+    {
+        this.Activate(ClaudeBundleId);
+        if (this.PressButton(ClaudeBundleId, name))
+        {
+            return true;
+        }
+
+        if (!this.OpenUrl("claude://claude.ai/chat"))
+        {
+            return false;
+        }
+
+        Thread.Sleep(1500);
+        return this.PressButton(ClaudeBundleId, name);
+    }
+
+    // Depth-first search that stops at the first match and skips text and images, so it takes about a second.
+    internal const string PressButtonScript = """
+        function run(argv) {
+          const bundleId = argv[0], target = argv[1];
+          const se = Application('System Events');
+          const procs = se.processes.whose({ bundleIdentifier: bundleId });
+          if (procs.length === 0) return 'missing';
+          const windows = procs[0].windows();
+          if (windows.length === 0) return 'missing';
+          let found = null;
+          function walk(el, depth) {
+            if (found || depth > 24) return;
+            let kids = [];
+            try { kids = el.uiElements(); } catch (e) { return; }
+            for (let i = 0; i < kids.length && !found; i++) {
+              const k = kids[i];
+              let role = '';
+              try { role = k.role(); } catch (e) {}
+              if (role === 'AXButton') {
+                let n = '';
+                try { n = k.name(); } catch (e) {}
+                if (n === target) { found = k; }
+                continue;
+              }
+              if (role === 'AXStaticText' || role === 'AXImage') continue;
+              walk(k, depth + 1);
+            }
+          }
+          walk(windows[0], 0);
+          if (!found) return 'missing';
+          found.actions.byName('AXPress').perform();
+          return 'pressed';
+        }
+        """;
+
+    /// <summary>Runs a JavaScript for Automation script with arguments and returns its trimmed output, or null on failure.</summary>
+    public string? JavaScript(string script, IReadOnlyList<string> args, TimeSpan? timeout = null)
+    {
+        var file = Path.Combine(Path.GetTempPath(), "birchpad-" + Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(System.Text.Encoding.UTF8.GetBytes(script)))[..12] + ".js");
+        try
+        {
+            if (!File.Exists(file))
+            {
+                File.WriteAllText(file, script);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            this.log?.Invoke($"cannot write script: {ex.Message}");
+            return null;
+        }
+
+        var result = this.Run("/usr/bin/osascript", ["-l", "JavaScript", file, .. args], timeout ?? TimeSpan.FromSeconds(10));
+        return result.ExitCode == 0 ? result.Output.Trim() : null;
+    }
 
     /// <summary>Opens a Claude Desktop Code session by its Claude Code session ID.</summary>
     public bool OpenClaudeDesktopSession(string sessionId) =>

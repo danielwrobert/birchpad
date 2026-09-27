@@ -31,8 +31,9 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
                     // Fall back to just raising iTerm when no tab is in the session's folder.
                     return (session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd)) || this.mac.Activate(MacAutomation.ItermBundleId);
                 case SessionSource.Codex:
-                    // A Codex CLI session lives in an iTerm tab; otherwise it is in the ChatGPT app, which has no thread deep link.
-                    return (session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd)) || this.mac.Activate(MacAutomation.CodexBundleId);
+                    // A Codex CLI session lives in an iTerm tab; otherwise open its thread in the ChatGPT app.
+                    return (session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd))
+                        || this.mac.OpenUrl($"codex://threads/{Uri.EscapeDataString(session.SessionId)}");
                 default:
                     return false;
             }

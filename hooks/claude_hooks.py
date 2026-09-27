@@ -53,6 +53,9 @@ def base_url(port):
 
 STATUSLINE_NAME = "birchpad-statusline.sh"
 
+# The status line script's name before the rename to Birchpad; it is replaced and removed.
+LEGACY_STATUSLINE_NAMES = ("devdeck-statusline.sh",)
+
 LEGACY_PORT_MARK = "localhost:8765"
 LEGACY_STATUSLINE_MARK = "claude-desktop/statusline.sh"
 
@@ -105,11 +108,13 @@ def add_ours(hooks, port, blocking_permissions):
 
 def set_statusline(settings, claude_dir, port):
     current = str(settings.get("statusLine", {}).get("command", ""))
-    if current and STATUSLINE_NAME not in current:
+    if current and not any(name in current for name in (STATUSLINE_NAME, *LEGACY_STATUSLINE_NAMES)):
         print(f"kept the existing status line: {current}")
         return
     script = claude_dir / STATUSLINE_NAME
     shutil.copy2(Path(__file__).with_name(STATUSLINE_NAME), script)
+    for name in LEGACY_STATUSLINE_NAMES:
+        (claude_dir / name).unlink(missing_ok=True)
     script.chmod(0o755)
     settings["statusLine"] = {"type": "command", "command": f"'{script}' {port}"}
     print(f"status line set to {script}")
@@ -159,7 +164,7 @@ def main():
         add_ours(hooks, args.port, args.blocking_permissions)
         if args.statusline:
             set_statusline(settings, args.settings.parent, args.port)
-    elif args.action == "remove" and STATUSLINE_NAME in str(settings.get("statusLine", {}).get("command", "")):
+    elif args.action == "remove" and any(name in str(settings.get("statusLine", {}).get("command", "")) for name in (STATUSLINE_NAME, *LEGACY_STATUSLINE_NAMES)):
         del settings["statusLine"]
         print("removed the Birchpad status line")
     if not hooks:

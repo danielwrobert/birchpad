@@ -18,6 +18,7 @@ public sealed record HookEvent(
     string? Error = null,
     string? AgentId = null,
     JsonNode? ToolInput = null,
+    string? TranscriptPath = null,
     JsonObject? Raw = null)
 {
     /// <summary>Parses a Claude Code hook body. Returns null when it has no session ID or event name.</summary>
@@ -66,6 +67,7 @@ public sealed record HookEvent(
             Error: Str(obj, "error"),
             AgentId: Str(obj, "agent_id"),
             ToolInput: obj["tool_input"],
+            TranscriptPath: Str(obj, "transcript_path"),
             Raw: obj);
     }
 

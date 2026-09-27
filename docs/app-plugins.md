@@ -6,23 +6,39 @@ Both use the shared action base in `src/Shared`, so each key runs off the key-pr
 
 ## Claude keys
 
-- Deep links: New chat (`claude://claude.ai/new`), New code (`claude://code/new`), Needs me (`claude://code/needs-input`).
-- Menu clicks: Chat (Go > Chat and Cowork), Code, Prev and Next session, Search, Palette, Dictate.
-- Shortcuts: Sidebar (⌘B), Terminal (⌘J), Changes (⇧⌘D), Side chat (⌘;); their menu names change with state, so they use keys.
-- Stop: brings Claude forward and sends Escape.
+Each key is a folder with Back in the top-left key.
 
-## Codex keys
+- New: Chat (`claude://claude.ai/new`), Code session (`claude://code/new`), Cowork (Go > Chat and Cowork).
+- Prompts: one key per saved prompt.
+- Chats: Recent chats (`claude://claude.ai/chat`) and Projects (`claude://claude.ai/project`), which open in Claude Desktop, and Artifacts, which opens claude.ai in the browser.
+  Claude Desktop accepts only a fixed set of `claude://claude.ai/` routes (`chat`, `project`, `new`, `settings`, `tasks`, `cowork`, `customize`, and a few more); `chat` and `project` with no ID fall back to Recents and the projects list, and no route opens Artifacts.
+- Projects: folders Claude Desktop Code sessions ran in, most recent first; press one for a new Code session there (`claude://code/new?folder=`).
+- Settings: Settings, Connectors, Sidebar, Terminal, Changes, Side chat, then `/mcp`, `/plugins`, `/model`, `/config`, `/hooks` typed into the current session, and Stop.
 
-- Menu clicks: New chat, Temp chat, Prev and Next chat, Sidebar, Review, Files, Terminal, Dictate.
-- Stop: brings ChatGPT forward and sends Escape.
+## ChatGPT and Codex keys
 
-The app has no menu item or known shortcut for switching between Codex and Work, or for approving a request, so those keys are not built.
+- New: Chat (File > New Chat), then Codex session (`codex://threads/new`), in the same keys as Claude's Chat and Code session.
+- Prompts: one key per saved prompt.
+- Chats: Recent chats (the sidebar), Prev chat, Next chat.
+- Projects: Codex projects from `~/.codex/state_5.sqlite`; the new-thread link takes no folder, so a project opens a new Codex session.
+- Scheduled: opens the app, since no local source lists Codex automations yet.
+- Settings: Settings, Connections, Plugins, Sidebar, Review, Files, Terminal, then `/mcp`, `/model`, `/approvals`, `/status`, and Stop.
+
+## Slash commands
+
+`~/Library/Application Support/Birchpad/slash-commands.json` holds one list of slash commands for every app, as `{"name": "...", "command": "...", "submit": true}` objects.
+With `"submit": false` the command is typed without Return, for commands that take arguments; keep its trailing space.
+The file starts with six general commands; replace them with the commands your team uses.
+
+- Claude and ChatGPT: the first key on the Prompts page, Commands, opens the list; a command is pasted into the app's message box.
+- iTerm: the Slash commands key on the home page types a command into the current pane.
+- Any profile, including the default one: Agent Hub's Slash commands folder pastes a command into whatever app is in front.
 
 ## Saved prompts
 
 Both plugins read `~/Library/Application Support/Birchpad/prompts.json`, a JSON array of `{"name": "...", "text": "..."}` objects.
 A key pastes its prompt into the app's focused field and presses Return; the clipboard's text is put back afterwards.
-The file starts with three prompts and the keys update when it is saved.
+The folder reads the file each time it opens.
 
 ## Codex status in Agent Hub
 
@@ -38,9 +54,8 @@ The app server makes no model calls.
 
 ## Default profiles
 
-`tools/profiles.py` defines a three-page layout for each app plugin and writes it to `profiles/generated/<app>/ProfileInfo.json` in the schema the plugin service stores.
-Page 1 is the same everywhere: session slots 1 to 5, Next, Allow, Deny, and Stop from Agent Hub.
-`python3 tools/profiles.py check` confirms every placed key names an action class and parameter that exist in the plugin sources.
+`python3 tools/profiles.py write` builds one home page per app plugin from `docs/workflow-design.md` and writes it to `src/<Plugin>Plugin/package/profiles/DefaultProfile70mac.lp5`, which ships in the plugin package, and to `profiles/generated/` for Import in Options+.
+`check` confirms every key names a folder or command class that exists, placed as the right kind.
 
-A `.lp5` profile is a zip of the profile folder, `ApplicationInfo.json`, the app icon, and package metadata.
-The archive's file names are obfuscated in the plugin service, so packing the generated layouts into `DefaultProfile70mac.lp5` waits for one profile exported from Options+ to copy the layout from.
+A `.lp5` is a zip of `ProfileInfo.json`, `ApplicationInfo.json`, `ApplicationIcon.png`, and `metadata/` (`LoupedeckPackage.yaml` with `type: Profile5`, `AdvancedInfo.json` naming AgentHub, and `ProfilePreview.json` with one small image per key), copied from the export in `profiles/exported/`.
+A folder key is stored as `$<Plugin>___#DynamicFolder___DynamicFolder#Loupedeck.<Plugin>Plugin.Actions.<Class>`.

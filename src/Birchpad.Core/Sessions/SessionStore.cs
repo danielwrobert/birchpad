@@ -73,6 +73,7 @@ public sealed class SessionStore
             record.PermissionMode = e.PermissionMode ?? record.PermissionMode;
             record.Model = e.Model ?? record.Model;
             record.Title = e.SessionTitle ?? record.Title;
+            record.TranscriptPath = e.TranscriptPath ?? record.TranscriptPath;
             if (e.ToolName is not null)
             {
                 record.LastToolName = e.ToolName;
@@ -190,18 +191,19 @@ public sealed class SessionStore
 
     /// <summary>
     /// The session that most needs the user: the longest-waiting approval, then question,
-    /// then the most recently finished turn.
+    /// then the most recently finished turn. With <paramref name="agent"/>, only that agent's sessions count.
     /// </summary>
-    public SessionSnapshot? MostUrgent()
+    public SessionSnapshot? MostUrgent(string? agent = null)
     {
         lock (this.gate)
         {
-            var waiting = this.sessions.Values
+            var candidates = this.sessions.Values.Where(r => agent is null || r.Agent == agent).ToList();
+            var waiting = candidates
                 .Where(r => r.State is SessionState.NeedsApproval or SessionState.NeedsInput)
                 .OrderBy(r => r.State == SessionState.NeedsApproval ? 0 : 1)
                 .ThenBy(r => r.StateSince)
                 .FirstOrDefault();
-            return (waiting ?? this.sessions.Values
+            return (waiting ?? candidates
                 .Where(r => r.State == SessionState.Done)
                 .OrderByDescending(r => r.StateSince)
                 .FirstOrDefault())?.ToSnapshot();
@@ -319,8 +321,10 @@ public sealed class SessionStore
 
         public int? Slot { get; set; }
 
+        public string? TranscriptPath { get; set; }
+
         public SessionSnapshot ToSnapshot() => new(
             this.SessionId, this.Agent, this.Source, this.State, this.StateSince, this.LastEventAt,
-            this.Cwd, this.Title, this.Branch, this.Model, this.PermissionMode, this.LastToolName, this.Slot);
+            this.Cwd, this.Title, this.Branch, this.Model, this.PermissionMode, this.LastToolName, this.Slot, this.TranscriptPath);
     }
 }

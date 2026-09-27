@@ -89,6 +89,27 @@ namespace Loupedeck.Tiles
             }
         }
 
+        // A status tile: dark key with a colored frame, the herdr-style ring, and three lines of text.
+        public static BitmapImage Ring(String header, String name, String footer, BitmapColor ring, PluginImageSize imageSize)
+        {
+            var size = Pixels(imageSize);
+            using (var b = new BitmapBuilder(size, size))
+            {
+                b.Clear(Empty);
+                var t = Math.Max(4, size / 14);
+                b.FillRectangle(0, 0, size, t, ring);
+                b.FillRectangle(0, size - t, size, t, ring);
+                b.FillRectangle(0, 0, t, size, ring);
+                b.FillRectangle(size - t, 0, t, size, ring);
+                var pad = t + (size / 20);
+                var small = Math.Max(9, size / 9);
+                b.DrawText(header ?? String.Empty, pad, pad, size - (2 * pad), small + 2, Muted, small);
+                b.DrawText(name ?? String.Empty, pad, pad + small + 2, size - (2 * pad), size - (2 * pad) - (2 * small) - 4, BitmapColor.White, Math.Max(10, size / 7));
+                b.DrawText(footer ?? String.Empty, pad, size - pad - small - 2, size - (2 * pad), small + 2, ring, small);
+                return b.ToImage();
+            }
+        }
+
         public static BitmapImage Command(String label, BitmapColor background, PluginImageSize imageSize, String badge = null)
         {
             var size = Pixels(imageSize);

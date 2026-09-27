@@ -1,5 +1,11 @@
 namespace Birchpad.Core.Mac;
 
+/// <summary>One iTerm pane.</summary>
+public sealed record ITermSession(string Id, string Path, string Name, string Tty = "")
+{
+    public string FolderName => System.IO.Path.GetFileName(this.Path.TrimEnd('/')) is { Length: > 0 } name ? name : this.Name;
+}
+
 /// <summary>Drives iTerm2 through its AppleScript dictionary and, where AppleScript has no verb, its menus.</summary>
 public sealed class ITermController
 {
@@ -36,6 +42,17 @@ public sealed class ITermController
         return string.IsNullOrWhiteSpace(path) ? null : path;
     }
 
+    /// <summary>The terminal name (such as <c>ttys001</c>) of the current session.</summary>
+    public string CurrentTty() => TerminalAgents.TtyName(this.mac.AppleScript($$"""
+        tell application id "{{MacAutomation.ItermBundleId}}"
+          return tty of current session of current window
+        end tell
+        """));
+
+    /// <summary>The agent CLI running in the current session.</summary>
+    public AgentKind CurrentAgent() =>
+        TerminalAgents.Detect().TryGetValue(this.CurrentTty(), out var kind) ? kind : AgentKind.None;
+
     /// <summary>Opens a new tab with the named profile, or the default profile when null.</summary>
     public bool NewTab(string? profile = null) => this.mac.AppleScript($$"""
         tell application id "{{MacAutomation.ItermBundleId}}"
@@ -52,6 +69,87 @@ public sealed class ITermController
     public bool SplitAndRun(bool vertical, string command, string? cwd) => this.mac.AppleScript(SplitScript(vertical, command, cwd)) is not null;
 
     public bool ClickMenu(params string[] path) => this.mac.ClickMenu(MacAutomation.ItermBundleId, path);
+
+    /// <summary>Every iTerm session, one per pane, with its working folder from shell integration.</summary>
+    public IReadOnlyList<ITermSession> ListSessions()
+    {
+        var output = this.mac.AppleScript(ListScript);
+        return output is null ? [] : ParseSessions(output);
+    }
+
+    /// <summary>Selects the session with this iTerm session ID and brings its window forward.</summary>
+    public bool Focus(string sessionId) => this.mac.AppleScript(FocusScript(sessionId)) == "found";
+
+    /// <summary>Opens a new tab and runs <paramref name="command"/> in <paramref name="cwd"/>, or just opens a shell there.</summary>
+    public bool NewTabAt(string? cwd, string? command) => this.mac.AppleScript(NewTabScript(cwd, command)) is not null;
+
+    internal const string ListScript = """
+        set out to ""
+        set sep to character id 9
+        tell application id "com.googlecode.iterm2"
+          repeat with w in windows
+            repeat with t in tabs of w
+              repeat with s in sessions of t
+                set p to ""
+                try
+                  set p to (variable named "session.path") of s
+                end try
+                set out to out & (id of s) & sep & p & sep & (name of s) & sep & (tty of s) & linefeed
+              end repeat
+            end repeat
+          end repeat
+        end tell
+        return out
+        """;
+
+    internal static IReadOnlyList<ITermSession> ParseSessions(string output) =>
+        output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Split('\t'))
+            .Where(parts => parts.Length >= 3 && parts[0].Length > 0)
+            .Select(parts => new ITermSession(parts[0].Trim(), parts[1].Trim(), parts[2].Trim(), parts.Length > 3 ? TerminalAgents.TtyName(parts[3].Trim()) : string.Empty))
+            .ToList();
+
+    internal static string FocusScript(string sessionId) => $$"""
+        tell application id "{{MacAutomation.ItermBundleId}}"
+          repeat with w in windows
+            repeat with t in tabs of w
+              repeat with s in sessions of t
+                if (id of s) is {{MacAutomation.Quote(sessionId)}} then
+                  select w
+                  tell t to select
+                  tell s to select
+                  activate
+                  return "found"
+                end if
+              end repeat
+            end repeat
+          end repeat
+        end tell
+        return "missing"
+        """;
+
+    internal static string NewTabScript(string? cwd, string? command)
+    {
+        var line = (cwd, command) switch
+        {
+            (null, null) => null,
+            (null, _) => command,
+            (_, null) => $"cd {ShellQuote(cwd)}",
+            _ => $"cd {ShellQuote(cwd)} && {command}",
+        };
+        var write = line is null ? string.Empty : $"tell current session of current window to write text {MacAutomation.Quote(line)}";
+        return $$"""
+            tell application id "{{MacAutomation.ItermBundleId}}"
+              if (count of windows) is 0 then
+                create window with default profile
+              else
+                tell current window to create tab with default profile
+              end if
+              {{write}}
+              activate
+            end tell
+            """;
+    }
 
     internal static string WriteScript(string text, bool newline)
     {

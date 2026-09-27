@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Birchpad.Core.Permissions;
 using Birchpad.Core.Sessions;
+using Birchpad.Core.Usage;
 
 namespace Birchpad.Core.Http;
 
@@ -29,11 +30,13 @@ public sealed class HookListener : IDisposable
     private readonly PermissionBroker broker;
     private readonly Func<DateTimeOffset> clock;
     private readonly Action<string>? log;
+    private readonly UsageStore? usage;
     private CancellationTokenSource? stopping;
     private Task? loop;
 
-    public HookListener(int port, SessionStore store, PermissionBroker broker, Func<DateTimeOffset>? clock = null, Action<string>? log = null)
+    public HookListener(int port, SessionStore store, PermissionBroker broker, Func<DateTimeOffset>? clock = null, Action<string>? log = null, UsageStore? usage = null)
     {
+        this.usage = usage;
         this.Port = port;
         this.store = store;
         this.broker = broker;
@@ -229,7 +232,9 @@ public sealed class HookListener : IDisposable
         }
 
         var model = obj?["model"]?["display_name"]?.GetValue<string>();
-        this.store.ApplyModel(sessionId, model, this.clock());
+        var now = this.clock();
+        this.store.ApplyModel(sessionId, model, now);
+        this.usage?.ApplyStatusLine(obj!, now);
         return (200, null);
     }
 

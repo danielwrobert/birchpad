@@ -6,8 +6,23 @@ namespace Birchpad.Core.Codex;
 /// <summary>Usage against one Codex rate-limit window.</summary>
 public sealed record CodexLimit(double UsedPercent, int WindowMinutes, DateTimeOffset? ResetsAt);
 
-/// <summary>The 5-hour and weekly Codex limits.</summary>
-public sealed record CodexUsage(CodexLimit? Primary, CodexLimit? Secondary, DateTimeOffset FetchedAt);
+/// <summary>The 5-hour and weekly Codex limits, plus plan, credits, and account history when available.</summary>
+public sealed record CodexUsage(CodexLimit? Primary, CodexLimit? Secondary, DateTimeOffset FetchedAt)
+{
+    public string? Plan { get; init; }
+
+    public double? CreditBalance { get; init; }
+
+    public bool HasCredits { get; init; }
+
+    public long? LifetimeTokens { get; init; }
+
+    public long? PeakDailyTokens { get; init; }
+
+    public int? CurrentStreakDays { get; init; }
+
+    public int? LongestStreakDays { get; init; }
+}
 
 /// <summary>A Codex thread as the app server lists it.</summary>
 public sealed record CodexThread(string Id, string? Name, string? Cwd, DateTimeOffset? UpdatedAt);
@@ -37,8 +52,25 @@ public sealed class CodexAppServer
     public CodexUsage? ReadUsage(DateTimeOffset now)
     {
         var limits = this.Request("account/rateLimits/read", new JsonObject())?["rateLimits"];
-        return limits is null ? null : ParseUsage(limits, now);
+        if (limits is null)
+        {
+            return null;
+        }
+
+        var usage = ParseUsage(limits, now);
+        var summary = this.Request("account/usage/read", new JsonObject())?["summary"];
+        return summary is null ? usage : WithSummary(usage, summary);
     }
+
+    internal static CodexUsage WithSummary(CodexUsage usage, JsonNode summary) => usage with
+    {
+        LifetimeTokens = Long(summary["lifetimeTokens"]),
+        PeakDailyTokens = Long(summary["peakDailyTokens"]),
+        CurrentStreakDays = (int?)Long(summary["currentStreakDays"]),
+        LongestStreakDays = (int?)Long(summary["longestStreakDays"]),
+    };
+
+    private static long? Long(JsonNode? node) => node is JsonValue v && v.TryGetValue<long>(out var l) ? l : null;
 
     public IReadOnlyList<CodexThread> ListThreads(int limit = 50)
     {
@@ -47,7 +79,12 @@ public sealed class CodexAppServer
     }
 
     internal static CodexUsage ParseUsage(JsonNode limits, DateTimeOffset now) =>
-        new(ParseLimit(limits["primary"]), ParseLimit(limits["secondary"]), now);
+        new(ParseLimit(limits["primary"]), ParseLimit(limits["secondary"]), now)
+        {
+            Plan = limits["planType"] is JsonValue plan ? plan.ToString() : null,
+            HasCredits = limits["credits"]?["hasCredits"] is JsonValue has && has.TryGetValue<bool>(out var h) && h,
+            CreditBalance = limits["credits"]?["balance"] is JsonValue balance && balance.TryGetValue<double>(out var b) ? b : null,
+        };
 
     internal static IReadOnlyList<CodexThread> ParseThreads(JsonArray data) =>
         data.OfType<JsonObject>()
