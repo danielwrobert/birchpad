@@ -155,36 +155,61 @@ public sealed class HerdrTests : IDisposable
         listener.Bind(new UnixDomainSocketEndPoint(path));
         listener.Listen(8);
         var requests = new List<JsonNode>();
-        var server = Task.Run(() =>
+        using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        // Answers every connection until the test ends: the socket probe sends nothing, each request gets one reply.
+        // Accepting asynchronously lets the test cancel the loop; a blocked Accept can stall disposal on macOS.
+        var server = Task.Run(async () =>
         {
-            // One connection for the socket probe, then one per request.
-            for (var i = 0; i < 3; i++)
+            while (!stop.IsCancellationRequested)
             {
-                using var connection = listener.Accept();
-                var buffer = new byte[65536];
-                var read = connection.Receive(buffer);
-                if (read == 0)
+                Socket connection;
+                try
                 {
-                    continue;
+                    connection = await listener.AcceptAsync(stop.Token);
+                }
+                catch (Exception ex) when (ex is OperationCanceledException or SocketException)
+                {
+                    return;
                 }
 
-                var request = JsonNode.Parse(Encoding.UTF8.GetString(buffer, 0, read).Trim())!;
-                lock (requests)
+                using (connection)
                 {
-                    requests.Add(request);
-                }
+                    var buffer = new byte[65536];
+                    int read;
+                    try
+                    {
+                        read = connection.Receive(buffer);
+                    }
+                    catch (SocketException)
+                    {
+                        continue;
+                    }
 
-                var id = request["id"]!.GetValue<string>();
-                var reply = request["method"]!.GetValue<string>() == "session.snapshot"
-                    ? $$$"""{"id":"{{{id}}}","result":{"type":"session_snapshot","snapshot":{{{Snapshot.ReplaceLineEndings(" ")}}}}}"""
-                    : $$$"""{"id":"{{{id}}}","error":{"code":"pane_not_found","message":"no pane w9:p9"}}""";
-                connection.Send(Encoding.UTF8.GetBytes(reply + "\n"));
+                    if (read == 0)
+                    {
+                        continue;
+                    }
+
+                    var request = JsonNode.Parse(Encoding.UTF8.GetString(buffer, 0, read).Trim())!;
+                    lock (requests)
+                    {
+                        requests.Add(request);
+                    }
+
+                    var id = request["id"]!.GetValue<string>();
+                    var reply = request["method"]!.GetValue<string>() == "session.snapshot"
+                        ? $$$"""{"id":"{{{id}}}","result":{"type":"session_snapshot","snapshot":{{{Snapshot.ReplaceLineEndings(" ")}}}}}"""
+                        : $$$"""{"id":"{{{id}}}","error":{"code":"pane_not_found","message":"no pane w9:p9"}}""";
+                    connection.Send(Encoding.UTF8.GetBytes(reply + "\n"));
+                }
             }
         });
 
         var client = new HerdrClient(configDirectory: this.directory);
         var snapshot = client.Snapshot();
         var error = Assert.Throws<HerdrException>(() => client.SendKeys("w9:p9", "esc", "ctrl+c"));
+        stop.Cancel();
         server.Wait(TimeSpan.FromSeconds(5));
 
         Assert.Equal(3, snapshot.Agents.Count);

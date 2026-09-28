@@ -19,7 +19,7 @@ The Herdr key opens a home page; each category below it is also its own folder, 
 | Key | Category | What it shows |
 | --- | --- | --- |
 | 1 | Back | |
-| 2 | Agents | Every agent pane, ringed by status; press one for Focus, Enter, Esc, Mode, Ctrl-C, and Zoom |
+| 2 | Agents | Every agent pane, ringed by status; press one for Open, Allow, Deny, Always, Stop, Slash commands, Prompts, and Mode, in the keys an Agent Hub session uses |
 | 3 | New | New tab, new workspace, split right and down, then one key per installed agent that opens it in a split |
 | 4 | Slash commands | The shared `slash-commands.json`, typed into herdr's focused pane |
 | 5 | Workspaces | Every workspace, ringed by its agents; one with several tabs opens a page of them |
@@ -28,6 +28,8 @@ The Herdr key opens a home page; each category below it is also its own folder, 
 | 8 | Agent keys | Esc, Mode, Ctrl-C, Clear, Compact, Model, Context, and Usage, sent to the focused pane |
 | 9 | Panes | Arrows around Zoom to move between panes, plus split right and down |
 
+Allow and Always type 1 and 2 into the approval prompt; Deny and Stop press Esc.
+An agent's slash commands and prompts go to that agent's pane, whichever pane has focus.
 Agent keys send `/context` and `/usage` to Claude Code and `/status` to Codex, from the agent herdr detected in the focused pane.
 The New page lists the agent kinds from herdr's detection manifests whose executable a login shell finds, so installing another agent adds its key.
 Keys reach herdr's panes directly, so they work while another app is in front.

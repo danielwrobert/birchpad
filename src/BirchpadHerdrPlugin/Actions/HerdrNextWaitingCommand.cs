@@ -18,9 +18,9 @@ namespace Loupedeck.BirchpadHerdrPlugin.Actions
 
         protected override Boolean OnLoad()
         {
-            if (this.Owner?.Watcher is { } watcher)
+            if (this.Owner is { } owner)
             {
-                watcher.Changed += this.OnChanged;
+                owner.HerdrChanged += this.OnChanged;
             }
 
             return true;
@@ -28,9 +28,9 @@ namespace Loupedeck.BirchpadHerdrPlugin.Actions
 
         protected override Boolean OnUnload()
         {
-            if (this.Owner?.Watcher is { } watcher)
+            if (this.Owner is { } owner)
             {
-                watcher.Changed -= this.OnChanged;
+                owner.HerdrChanged -= this.OnChanged;
             }
 
             return true;

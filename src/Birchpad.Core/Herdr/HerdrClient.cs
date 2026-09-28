@@ -29,7 +29,10 @@ public sealed class HerdrClient
 
     public HerdrClient(string? socketPath = null, string? configDirectory = null)
     {
-        this.configuredSocket = string.IsNullOrWhiteSpace(socketPath) ? Environment.GetEnvironmentVariable("HERDR_SOCKET_PATH") : socketPath;
+        // HERDR_SOCKET_PATH applies only to the default config, so a caller that names a config directory gets that one.
+        this.configuredSocket = !string.IsNullOrWhiteSpace(socketPath) ? socketPath
+            : configDirectory is null ? Environment.GetEnvironmentVariable("HERDR_SOCKET_PATH")
+            : null;
         this.configDirectory = configDirectory ?? DefaultConfigDirectory();
     }
 
@@ -218,6 +221,12 @@ public sealed class HerdrClient
 
         this.Request("pane.send_input", parameters);
     }
+
+    /// <summary>
+    /// Submits a prompt to the agent in a pane, pasted the way the agent expects so a long or multi-line prompt arrives whole.
+    /// herdr refuses with <c>agent_blocked</c> while the agent waits on an approval.
+    /// </summary>
+    public void Prompt(string paneId, string text) => this.Request("agent.prompt", new JsonObject { ["target"] = paneId, ["text"] = text });
 
     /// <summary>Splits a pane (the focused one when null) to the right or down, and returns the new pane's ID.</summary>
     public string? Split(string? paneId, string direction, string? cwd, bool focus)

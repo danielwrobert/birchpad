@@ -4,6 +4,7 @@ namespace Loupedeck.BirchpadHerdrPlugin.Actions
     using System.Collections.Generic;
     using System.Linq;
 
+    using Birchpad.Core.Config;
     using Birchpad.Core.Herdr;
 
     using Loupedeck.Tiles;
@@ -22,9 +23,9 @@ namespace Loupedeck.BirchpadHerdrPlugin.Actions
 
         public override Boolean Load()
         {
-            if (this.Owner?.Watcher is { } watcher)
+            if (this.Owner is { } owner)
             {
-                watcher.Changed += this.OnChanged;
+                owner.HerdrChanged += this.OnChanged;
             }
 
             return true;
@@ -32,9 +33,9 @@ namespace Loupedeck.BirchpadHerdrPlugin.Actions
 
         public override Boolean Unload()
         {
-            if (this.Owner?.Watcher is { } watcher)
+            if (this.Owner is { } owner)
             {
-                watcher.Changed -= this.OnChanged;
+                owner.HerdrChanged -= this.OnChanged;
             }
 
             return true;
@@ -119,20 +120,59 @@ namespace Loupedeck.BirchpadHerdrPlugin.Actions
                 };
             }).ToList());
 
-        // What you can do to one agent without switching to it, plus Focus to switch.
-        private IReadOnlyList<MenuItem> AgentPage(String paneId) => new[]
+        // One agent's page, in the same keys as an Agent Hub session: Open, Allow, Deny, Always, Stop,
+        // then its slash commands, saved prompts, and mode. Everything is sent to this agent's pane, wherever focus is.
+        // Allow and Always pick options 1 and 2 of the approval prompt, which Claude Code and Codex both number that way.
+        private IReadOnlyList<MenuItem> AgentPage(String paneId) => this.WhenRunning((herdr, snapshot) =>
         {
-            this.Do("focus", "Focus", TileRenderer.Done, h => Show(h, paneId)),
-            this.Do("enter", "Enter", TileRenderer.Working, h => h.SendKeys(paneId, "enter")),
-            this.Do("escape", "Esc", TileRenderer.Failed, h => h.SendKeys(paneId, "esc")),
-            this.Do("mode", "Mode", TileRenderer.Question, h => h.SendKeys(paneId, "shift+tab")),
-            this.Do("control-c", "Ctrl-C", TileRenderer.Failed, h => h.SendKeys(paneId, "ctrl+c")),
-            this.Do("zoom", "Zoom", TileRenderer.Idle, h =>
+            var agent = snapshot.Agents.FirstOrDefault(a => a.Id == paneId);
+            if (agent == null)
             {
-                Show(h, paneId);
-                h.ToggleZoom(paneId);
-            }),
-        };
+                return Array.Empty<MenuItem>();
+            }
+
+            var blocked = agent.Status == HerdrStatus.Blocked;
+            var answer = blocked ? TileRenderer.Approval : TileRenderer.Empty;
+            return new[]
+            {
+                new MenuItem("open", "Open")
+                {
+                    Image = size => TileRenderer.Ring((agent.Agent ?? "agent").ToUpperInvariant(), agent.Name ?? agent.FolderName, LabelFor(agent.Status), RingFor(agent.Status), size),
+                    Run = () => this.Call("open", h => Show(h, paneId)),
+                },
+                this.Do("allow", "Allow", answer, h => h.SendText(paneId, "1", submit: false)),
+                this.Do("deny", "Deny", blocked ? TileRenderer.Failed : TileRenderer.Empty, h => h.SendKeys(paneId, "esc")),
+                this.Do("always", "Always", answer, h => h.SendText(paneId, "2", submit: false)),
+                this.Do("stop", "Stop", TileRenderer.Failed, h => h.SendKeys(paneId, "esc")),
+                new MenuItem("slash", "Slash commands ›")
+                {
+                    Color = TileRenderer.Working,
+                    Open = () => SlashCommands.Items((text, submit) => this.Call("slash", h => h.SendText(paneId, text, submit)), message => PluginLog.Warning(message)),
+                },
+                new MenuItem("prompts", "Prompts ›")
+                {
+                    Color = TileRenderer.Question,
+                    Open = () => this.PromptsPage(paneId),
+                },
+                this.Do("mode", "Mode", TileRenderer.Idle, h => h.SendKeys(paneId, "shift+tab")),
+            };
+        });
+
+        // Saved prompts from prompts.json, sent to one agent as a pasted prompt.
+        private IReadOnlyList<MenuItem> PromptsPage(String paneId)
+        {
+            var prompts = SavedEntries.LoadPrompts(PromptsFolder.PromptsFile, out var error);
+            if (error != null)
+            {
+                PluginLog.Warning($"Prompts not loaded from {PromptsFolder.PromptsFile}: {error}");
+            }
+
+            return prompts.Select(p =>
+            {
+                var text = p.Text;
+                return this.Do("p:" + p.Name, p.Name, TileRenderer.Question, h => h.Prompt(paneId, text));
+            }).ToList();
+        }
 
         // Every workspace, colored by its agents; one with several tabs opens a page of them.
         protected IReadOnlyList<MenuItem> WorkspacesPage() => this.WhenRunning((herdr, snapshot) =>
