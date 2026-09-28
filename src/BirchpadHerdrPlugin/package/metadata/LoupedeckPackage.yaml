@@ -1,0 +1,23 @@
+type: plugin4
+name: BirchpadHerdr
+displayName: Birchpad Herdr
+description: Agents, workspaces, splits, and agent keys for the herdr terminal multiplexer.
+pluginFileName: BirchpadHerdrPlugin.dll
+version: 0.1.0
+author: thejimbirch
+copyright: Copyright © 2026 thejimbirch. All rights reserved.
+
+pluginFolderMac: bin
+
+supportedDevices:
+    - MxCreativeKeypad
+    - LoupedeckCtFamily
+
+# Universal: herdr runs inside a terminal app, so it has no app of its own to link to.
+pluginCapabilities:
+    - HasNoApplication
+
+minimumLoupedeckVersion: 6.0
+
+license: MIT
+licenseUrl: https://opensource.org/licenses/MIT

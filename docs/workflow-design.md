@@ -82,6 +82,20 @@ Status is a colored ring around the tile; amber and purple rings can pulse so a 
 | Settings | `/mcp`, `/plugins`, `/config`, `/hooks` for Claude Code, and `/mcp`, `/approvals`, `/status` for Codex | Types it in the current tab | List |
 | Routines | Same as Claude | Opens Claude Desktop | List |
 
+### herdr
+
+herdr runs inside a terminal app, so its keys live in the universal Birchpad Herdr plugin and open from key 5 of the iTerm home page.
+The page and its keys are in `docs/herdr.md`.
+
+| Category | What the keypad shows | Press an item | Feasibility |
+| --- | --- | --- | --- |
+| Agents | Every agent pane with its status color | Focus, Enter, Esc, Mode, Ctrl-C, Zoom | List (socket API `session.snapshot`) |
+| New | Tab, workspace, splits, and each installed agent kind | Starts it in the focused pane's folder | List (detection manifests and the login shell PATH) |
+| Workspaces | Every workspace with its agents' status | Focuses it, or opens its tabs | List |
+| Worktrees | Git worktrees of the focused workspace | Opens it as a workspace | List (`worktree.list`) |
+| Agent keys | Esc, Mode, Ctrl-C, `/clear`, `/compact`, `/model`, `/context`, `/usage` | Sends it to herdr's focused pane | List |
+| Panes | Arrows, Zoom, splits | Does it | List |
+
 ## Proposed home page
 
 All three apps share one grid, and iTerm's keys are the nearest equivalents of Claude's.

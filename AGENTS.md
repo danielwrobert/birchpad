@@ -1,6 +1,6 @@
 # Agent guide for Birchpad
 
-Birchpad is four Logi Actions SDK plugins (C#, .NET 10, macOS) for the Logitech MX Keypad: BirchpadAgentHub (universal), BirchpadClaude, BirchpadCodex, and BirchpadITerm.
+Birchpad is five Logi Actions SDK plugins (C#, .NET 10, macOS) for the Logitech MX Keypad: BirchpadAgentHub and BirchpadHerdr (universal), BirchpadClaude, BirchpadCodex, and BirchpadITerm.
 Read `README.md` for setup and `docs/workflow-design.md` for the approved key design before changing any key or page.
 
 ## Layout
@@ -46,10 +46,12 @@ Check a deploy in `~/Library/Application Support/Logi/LogiPluginService/Logs/plu
 - Folder pages are built on a worker thread; never do file, process, or HTTP work on the host thread or under `MenuFolder`'s lock.
 - Claude Desktop accepts only fixed `claude://claude.ai/` routes (`chat`, `project`, `new`, `settings`, `tasks`, `cowork`, `customize`, and a few more).
   Pages without a route (Artifacts, Design, Scheduled) are opened by pressing the sidebar button by name (`MacAutomation.PressButton`).
+- Installed profiles live in `~/Library/Application Support/Logi/LogiPluginService/Applications/Loupedeck70/@_birchpad<app>/Profiles/<id>/ProfileInfo.json`; read them to see which action IDs a keypad's keys point at.
 - Service logging turns on when `enablelogs`, `forcelogs`, or `enableverbose` exist in `~/Library/Application Support/Logi/LogiPluginService/`, after a service restart.
 - Agent Hub listens only on 127.0.0.1:8766 and refuses posts without `Content-Type: application/json` or with an `Origin` header.
 - Codex hooks must be re-trusted in `codex` `/hooks` whenever their command changes.
 - Read only IDs, titles, paths, and token counts from Claude and Codex local files; never print message content.
+- The Herdr plugin talks to herdr's socket, never its CLI; test against `herdr --session <name> server`, never the default session.
 
 ## Conventions
 

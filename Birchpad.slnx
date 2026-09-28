@@ -4,6 +4,7 @@
     <Project Path="src/BirchpadClaudePlugin/BirchpadClaudePlugin.csproj" />
     <Project Path="src/BirchpadCodexPlugin/BirchpadCodexPlugin.csproj" />
     <Project Path="src/Birchpad.Core/Birchpad.Core.csproj" />
+    <Project Path="src/BirchpadHerdrPlugin/BirchpadHerdrPlugin.csproj" />
     <Project Path="src/BirchpadITermPlugin/BirchpadITermPlugin.csproj" />
   </Folder>
   <Folder Name="/tests/">

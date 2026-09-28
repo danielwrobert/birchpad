@@ -1,7 +1,7 @@
 #!/bin/sh
 # Builds the given plugins (default: all) in Release and copies them over their installed copies, then reloads them.
 # The plugins must already be installed once from their .lplug4 (tools/package.sh, then open the file).
-# Usage: tools/deploy.sh [BirchpadAgentHub BirchpadITerm BirchpadCodex BirchpadClaude]
+# Usage: tools/deploy.sh [BirchpadAgentHub BirchpadHerdr BirchpadITerm BirchpadCodex BirchpadClaude]
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -11,7 +11,7 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 installed="$HOME/Library/Application Support/Logi/LogiPluginService/Plugins"
 
 python3 "$root/tools/profiles.py" write >/dev/null
-for plugin in "${@:-BirchpadAgentHub BirchpadITerm BirchpadCodex BirchpadClaude}"; do
+for plugin in "${@:-BirchpadAgentHub BirchpadHerdr BirchpadITerm BirchpadCodex BirchpadClaude}"; do
   for name in $plugin; do
     target="$installed/$name"
     if [ ! -d "$target" ]; then

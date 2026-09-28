@@ -1,17 +1,18 @@
 # Birchpad: MX Keypad plugins for agent work
 
-Four Logi Actions SDK plugins that put Claude Code, Codex, and iTerm on a Logitech MX Keypad.
+Five Logi Actions SDK plugins that put Claude Code, Codex, iTerm, and herdr on a Logitech MX Keypad.
 
 - Birchpad Agent Hub (universal): Sessions with status rings and per-session approvals, Scheduled, Usage, and Next waiting.
 - Birchpad Claude (Claude Desktop): New, Prompts, Chats, Projects, and Settings.
 - Birchpad Codex (ChatGPT app): New, Prompts, Chats, Projects, Scheduled, and Settings.
 - Birchpad iTerm (iTerm2): New, Commands, Tabs, Agent keys, and Settings.
+- Birchpad Herdr (universal): herdr agents, workspaces, worktrees, splits, and agent keys, from the Herdr key on the iTerm home page.
 
 Each app opens on a home page of categories; every category opens pages listed at run time, with Back in the top-left key.
 The design is in `docs/workflow-design.md`, and each app plugin ships its home page as a default profile.
 
 The plan is in `2026-09-26-logi-mx-keypad-plugins.md`.
-Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, and `docs/iterm.md`.
+Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, `docs/iterm.md`, and `docs/herdr.md`.
 
 ## Requirements
 
@@ -19,6 +20,7 @@ Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, and `docs/ite
 - .NET 10 SDK (`brew install dotnet`) and LogiPluginTool (`dotnet tool install --global LogiPluginTool`).
 - The `claude` and `codex` CLIs for cloud lists, thread names, and usage.
 - iTerm shell integration, so keys can find a session's tab by folder.
+- herdr 0.9 or later for the Herdr plugin.
 
 ## Build and run from source
 
@@ -30,7 +32,7 @@ dotnet build Birchpad.slnx
 ```
 
 A Debug build links each plugin into Logi Plugin Service and reloads it.
-If a reload collides with the running copy, run `open loupedeck:plugin/<Name>/reload` (Name is AgentHub, ITerm, Codex, or Claude).
+If a reload collides with the running copy, run `open loupedeck:plugin/<Name>/reload` (Name is AgentHub, Herdr, ITerm, Codex, or Claude).
 
 ## Hooks
 

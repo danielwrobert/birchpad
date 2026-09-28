@@ -83,9 +83,10 @@ PROFILES = {
         "displayName": "Birchpad iTerm",
         "plugin": "BirchpadITerm",
         "bundle": "com.googlecode.iterm2",
+        "extraPlugins": ["BirchpadHerdr"],
         "keys": [
             (folder("BirchpadITerm", "ITermTabsFolder"), "Tabs"), (command("BirchpadITerm", "ITermNewTabCommand"), "New tab"), (folder("BirchpadITerm", "ITermCommandsFolder"), "Commands"),
-            (folder("BirchpadITerm", "ITermSlashCommandsFolder"), "Slash commands"), (None, None), (folder("BirchpadITerm", "ITermAgentKeysFolder"), "Agent keys"),
+            (folder("BirchpadITerm", "ITermSlashCommandsFolder"), "Slash commands"), (folder("BirchpadHerdr", "HerdrHomeFolder"), "Herdr"), (folder("BirchpadITerm", "ITermAgentKeysFolder"), "Agent keys"),
             (command("BirchpadAgentHub", "NextWaitingCommand", "all"), "Next waiting"), (folder("BirchpadAgentHub", "AllUsageFolder"), "Usage"), (folder("BirchpadITerm", "ITermSettingsFolder"), "Settings"),
         ],
     },
@@ -303,7 +304,7 @@ def lp5(name, profile):
         z.writestr("ProfileInfo.json", json.dumps(info, indent=4))
         z.writestr("metadata/LoupedeckPackage.yaml", package_yaml)
         z.writestr("metadata/ProfilePreview.json", json.dumps(preview(profile), indent=4))
-        z.writestr("metadata/AdvancedInfo.json", json.dumps({"additionalPluginNames": ["BirchpadAgentHub"]}, indent=4))
+        z.writestr("metadata/AdvancedInfo.json", json.dumps({"additionalPluginNames": ["BirchpadAgentHub", *profile.get("extraPlugins", [])]}, indent=4))
     return buf.getvalue()
 
 
