@@ -20,11 +20,16 @@ namespace Loupedeck.BirchpadAgentHubPlugin
         // Shared services for every action. Null until Load runs.
         public Hub Hub { get; private set; }
 
+        // Raised when tiles should redraw. It lives on the plugin, which exists before any action loads,
+        // so an action that subscribes before Load has created the hub still hears every change.
+        public event EventHandler HubChanged;
+
         public override void Load()
         {
             var port = this.TryGetPluginSetting("port", out var value) && Int32.TryParse(value, out var parsed) ? parsed : Hub.DefaultPort;
             var cloudMinutes = this.TryGetPluginSetting("cloudIntervalMinutes", out var minutes) && Int32.TryParse(minutes, out var m) && m >= 5 ? m : 30;
             this.Hub = new Hub(port, TimeSpan.FromMinutes(cloudMinutes));
+            this.Hub.Changed += (sender, e) => this.HubChanged?.Invoke(this, EventArgs.Empty);
             if (this.Hub.Start(out var error))
             {
                 PluginLog.Info($"Agent Hub listening on 127.0.0.1:{port}");

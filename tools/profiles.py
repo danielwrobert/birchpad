@@ -92,6 +92,26 @@ PROFILES = {
     },
 }
 
+# General profiles belong to Options+'s General app (@_defaultmac), not to one app's plugin.
+# With Adapt to App off, the keypad stays on the one you pick; they are imported by hand, not shipped in a package.
+GENERAL = {
+    "agents": {
+        "applicationName": "@_defaultmac",
+        "displayName": "Birchpad Agents",
+        "plugin": "BirchpadAgentHub",
+        "general": True,
+        "extraPlugins": ["BirchpadHerdr"],
+        "keys": [
+            (folder("BirchpadAgentHub", "CodingSessionsFolder"), "Coding sessions"), (folder("BirchpadAgentHub", "ClaudeTasksFolder"), "Claude chats and tasks"), (folder("BirchpadAgentHub", "ChatGptTasksFolder"), "ChatGPT chats and tasks"),
+            (folder("BirchpadAgentHub", "AgentsNewFolder"), "New"), (folder("BirchpadHerdr", "HerdrWorkspacesFolder"), "Workspaces"), (SCHEDULED, "Scheduled"),
+            (command("BirchpadAgentHub", "NextWaitingCommand", "all"), "Next waiting"), (folder("BirchpadAgentHub", "AllUsageFolder"), "Usage"), (folder("BirchpadAgentHub", "AgentsProjectsFolder"), "Projects"),
+        ],
+    },
+}
+
+# The General app's own entry, as Options+ stores it; a General profile's package must not change it.
+GENERAL_APP = {"displayName": "System plugin", "nativePluginName": "DefaultMac", "bundle": None, "mode": ("System", "System")}
+
 CLASS_DECL = re.compile(r"public (?:abstract )?class (\w+)\s*:\s*(\w+)")
 ABSTRACT_DECL = re.compile(r"public abstract class (\w+)")
 
@@ -146,7 +166,7 @@ def check():
     known = known_actions()
     parameters = known_parameters()
     errors = []
-    for name, profile in PROFILES.items():
+    for name, profile in {**PROFILES, **GENERAL}.items():
         if len(profile["keys"]) != KEYS_PER_PAGE:
             errors.append(f"{name}: {len(profile['keys'])} keys, expected {KEYS_PER_PAGE}")
         for action, _ in profile["keys"]:
@@ -184,9 +204,9 @@ def profile_info(name, profile):
         "description": None,
         "deviceType": "Loupedeck70",
         "applicationName": profile["applicationName"],
-        "nativePluginName": profile["plugin"],
+        "nativePluginName": GENERAL_APP["nativePluginName"] if profile.get("general") else profile["plugin"],
         "hasNativePlugin": True,
-        "additionalNativePluginNames": ["DefaultMac"],
+        "additionalNativePluginNames": plugins_for(profile) if profile.get("general") else ["DefaultMac"],
         "lastModifiedTimeUtc": NOW,
         "profileSettings": {"$type": "Loupedeck.DictionaryNoCase`1[[System.String, System.Private.CoreLib]], PluginApi"},
         "actionImages90": None,
@@ -209,7 +229,7 @@ def profile_info(name, profile):
             "layoutModes": [{
                 "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutMode7, LoupedeckService",
                 "deviceType": "Loupedeck70",
-                "modeName": "main",
+                "modeName": GENERAL_APP["mode"][0] if profile.get("general") else "main",
                 "parentModeName": None,
                 "actions": None,
                 "dynamicButtonPages": None,
@@ -244,16 +264,18 @@ def profile_info(name, profile):
 
 
 def application_info(profile, profile_id):
+    general = profile.get("general")
+    mode, mode_label = GENERAL_APP["mode"] if general else ("main", "Main")
     return {
         "$type": "Loupedeck.Service.SupportedApplicationInfo, LoupedeckService",
         "name": profile["applicationName"],
-        "displayName": profile["displayName"],
+        "displayName": GENERAL_APP["displayName"] if general else profile["displayName"],
         "description": None,
         "deviceType": "Loupedeck70",
-        "nativePluginName": profile["plugin"],
+        "nativePluginName": GENERAL_APP["nativePluginName"] if general else profile["plugin"],
         "hasNativePlugin": True,
-        "processOrBundleName": profile["bundle"],
-        "modes": [{"$type": "Loupedeck.Service.ApplicationMode, LoupedeckService", "name": "main", "parentModeName": None, "displayName": "Main"}],
+        "processOrBundleName": GENERAL_APP["bundle"] if general else profile["bundle"],
+        "modes": [{"$type": "Loupedeck.Service.ApplicationMode, LoupedeckService", "name": mode, "parentModeName": None, "displayName": mode_label}],
         "defaultProfileName": profile_id,
         "isEnabled": True,
     }
@@ -293,18 +315,43 @@ def preview(profile):
     }
 
 
-def lp5(name, profile):
+def plugins_for(profile):
+    return list(dict.fromkeys([profile["plugin"], "BirchpadAgentHub", *profile.get("extraPlugins", [])]))
+
+
+def host_app(name, info, app):
+    """Rebinds a profile to the host app itself, as rshankras/keypad-profiles does.
+
+    Options+ refuses to import a profile for a plugin's own app (@_...), but imports one for a
+    plain app whose plugin actions come in through additionalNativePluginNames.
+    """
+    info["applicationName"] = app["name"] = app["processOrBundleName"].lower()
+    info["name"] = app["defaultProfileName"] = ident(name, "host-profile")
+    info["displayName"] = f"{info['displayName']} (host app)"
+    info["nativePluginName"] = app["nativePluginName"] = None
+    info["hasNativePlugin"] = app["hasNativePlugin"] = False
+    info["additionalNativePluginNames"] = ["DefaultMac", *info.pop("_plugins")]
+    info["layout"]["layoutModes"][0]["workspaces"][0]["name"] = ident(name, "host-workspace")
+    info["layout"]["layoutModes"][0]["homeWorkspaceName"] = ident(name, "host-workspace")
+    app["displayName"] = info["displayName"]
+
+
+def lp5(name, profile, host=False):
     info = profile_info(name, profile)
+    app = application_info(profile, info["name"])
+    if host:
+        info["_plugins"] = plugins_for(profile)
+        host_app(name, info, app)
     icon = ROOT / "src" / f"{profile['plugin']}Plugin" / "package" / "metadata" / "Icon256x256.png"
-    package_yaml = f"type: Profile5\nname: {info['name']}\ndisplayName: {profile['displayName']}\nversion: {PACKAGE_VERSION}\n"
+    package_yaml = f"type: Profile5\nname: {info['name']}\ndisplayName: {info['displayName']}\nversion: {PACKAGE_VERSION}\n"
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("ApplicationIcon.png", icon.read_bytes())
-        z.writestr("ApplicationInfo.json", json.dumps(application_info(profile, info["name"]), indent=4))
+        z.writestr("ApplicationInfo.json", json.dumps(app, indent=4))
         z.writestr("ProfileInfo.json", json.dumps(info, indent=4))
         z.writestr("metadata/LoupedeckPackage.yaml", package_yaml)
         z.writestr("metadata/ProfilePreview.json", json.dumps(preview(profile), indent=4))
-        z.writestr("metadata/AdvancedInfo.json", json.dumps({"additionalPluginNames": ["BirchpadAgentHub", *profile.get("extraPlugins", [])]}, indent=4))
+        z.writestr("metadata/AdvancedInfo.json", json.dumps({"additionalPluginNames": [p for p in plugins_for(profile) if host or profile.get("general") or p != profile["plugin"]]}, indent=4))
     return buf.getvalue()
 
 
@@ -315,7 +362,7 @@ def main():
         print(f"error: {error}")
     if errors:
         return 1
-    print(f"ok: {len(PROFILES)} home pages")
+    print(f"ok: {len(PROFILES)} home pages, {len(GENERAL)} general")
     if mode == "write":
         OUT.mkdir(parents=True, exist_ok=True)
         for name, profile in PROFILES.items():
@@ -324,6 +371,12 @@ def main():
             shipped.parent.mkdir(parents=True, exist_ok=True)
             shipped.write_bytes(data)
             (OUT / f"{profile['displayName']}.lp5").write_bytes(data)
+            # A second copy bound to the host app, for Import in Options+.
+            (OUT / f"{profile['displayName']} (host app).lp5").write_bytes(lp5(name, profile, host=True))
+        for name, profile in GENERAL.items():
+            path = OUT / f"{profile['displayName']}.lp5"
+            path.write_bytes(lp5(name, profile))
+            print(path.relative_to(ROOT))
             print(shipped.relative_to(ROOT))
     return 0
 

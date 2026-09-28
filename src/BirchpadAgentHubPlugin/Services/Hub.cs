@@ -10,6 +10,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
     using Birchpad.Core.Claude;
     using Birchpad.Core.Cloud;
     using Birchpad.Core.Codex;
+    using Birchpad.Core.Herdr;
     using Birchpad.Core.Http;
     using Birchpad.Core.Mac;
     using Birchpad.Core.Permissions;
@@ -44,6 +45,11 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
             this.Mac = new MacAutomation(message => PluginLog.Warning(message));
             this.Listener = new HookListener(port, this.Sessions, this.Permissions, log: message => PluginLog.Warning(message), usage: this.Usage);
             this.Focus = new SessionFocus(this.Mac);
+            this.Herdr = new HerdrClient();
+            this.HerdrAgents = new HerdrAgents(this.Herdr);
+            this.HerdrWatcher = new HerdrWatcher(this.Herdr);
+            this.HerdrWatcher.Changed += (_, _) => this.RaiseChanged();
+            this.Agents = new AgentActions(this);
 
             var claude = CloudHelper.FindClaude();
             if (claude != null)
@@ -81,6 +87,16 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
         public SessionFocus Focus { get; }
 
         public CodexState CodexState { get; }
+
+        // herdr's live session, so coding agents in herdr panes join the lists and receive keys through its socket.
+        public HerdrClient Herdr { get; }
+
+        public HerdrAgents HerdrAgents { get; }
+
+        public HerdrWatcher HerdrWatcher { get; }
+
+        // Focuses, answers, and types into one coding agent wherever it runs.
+        public AgentActions Agents { get; }
 
         // Null when the claude CLI is missing.
         public CloudCache Cloud { get; }
@@ -128,6 +144,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
         public void Dispose()
         {
             this.timer.Dispose();
+            this.HerdrWatcher.Dispose();
             this.Cloud?.Dispose();
             this.Listener.Dispose();
         }

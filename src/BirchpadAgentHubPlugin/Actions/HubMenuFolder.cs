@@ -17,9 +17,9 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
 
         public override Boolean Load()
         {
-            if (this.Hub != null)
+            if (this.Plugin is BirchpadAgentHubPlugin plugin)
             {
-                this.Hub.Changed += this.OnHubChanged;
+                plugin.HubChanged += this.OnHubChanged;
             }
 
             return true;
@@ -27,9 +27,9 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
 
         public override Boolean Unload()
         {
-            if (this.Hub != null)
+            if (this.Plugin is BirchpadAgentHubPlugin plugin)
             {
-                this.Hub.Changed -= this.OnHubChanged;
+                plugin.HubChanged -= this.OnHubChanged;
             }
 
             return true;

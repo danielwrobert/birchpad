@@ -8,6 +8,7 @@ Five Logi Actions SDK plugins that put Claude Code, Codex, iTerm, and herdr on a
 - Birchpad iTerm (iTerm2): New, Commands, Tabs, Agent keys, and Settings.
 - Birchpad Herdr (universal): herdr agents, workspaces, worktrees, splits, and agent keys, from the Herdr key on the iTerm home page.
 
+`profiles/generated/Birchpad Agents.lp5` is a General profile that works in any app: coding sessions, chats and tasks, and each agent's approvals and commands; see `2026-09-28-general-workflow-profiles.md`.
 Each app opens on a home page of categories; every category opens pages listed at run time, with Back in the top-left key.
 The design is in `docs/workflow-design.md`, and each app plugin ships its home page as a default profile.
 

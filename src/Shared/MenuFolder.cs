@@ -28,7 +28,7 @@ namespace Loupedeck.Tiles
         // Runs on a worker thread when pressed.
         public Func<Boolean> Run { get; set; }
 
-        // Opens a deeper page when pressed; takes precedence over Run.
+        // Opens a deeper page when pressed. With Run set too, Run also runs, once per press, while the page opens.
         public Func<IReadOnlyList<MenuItem>> Open { get; set; }
     }
 
@@ -155,7 +155,10 @@ namespace Loupedeck.Tiles
             {
                 var open = item.Open;
                 this.Navigate(stack => stack.Add(open));
-                return;
+                if (item.Run == null)
+                {
+                    return;
+                }
             }
 
             if (item?.Run != null)

@@ -220,10 +220,19 @@ public sealed class MacAutomation
     public bool SendEscapeToItermSessionAtPath(string path) =>
         this.AppleScript(ItermScript(path, sendEscape: true)) == "found";
 
-    internal static string ItermScript(string path, bool sendEscape)
+    /// <summary>
+    /// Types <paramref name="text"/> into the iTerm session whose working directory is <paramref name="path"/>,
+    /// then presses Return when <paramref name="newline"/> is set. iTerm need not be in front.
+    /// </summary>
+    public bool WriteToItermSessionAtPath(string path, string text, bool newline) =>
+        this.AppleScript(ItermScript(path, sendEscape: false, write: (text, newline))) == "found";
+
+    internal static string ItermScript(string path, bool sendEscape, (string Text, bool Newline)? write = null)
     {
         var target = Quote(path.TrimEnd('/'));
-        var action = sendEscape
+        var action = write is { } w
+            ? $"tell s to write text {Quote(w.Text)} newline {(w.Newline ? "YES" : "NO")}"
+            : sendEscape
             ? "tell s to write text (character id 27) newline NO"
             : "select w\n            tell t to select\n            tell s to select\n            activate";
         return $$"""

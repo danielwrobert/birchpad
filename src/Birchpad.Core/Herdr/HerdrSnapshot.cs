@@ -16,7 +16,10 @@ public sealed record HerdrWorkspace(string Id, int Number, string Label, bool Fo
 
 public sealed record HerdrTab(string Id, string WorkspaceId, int Number, string Label, bool Focused, HerdrStatus Status);
 
-/// <summary>A pane; <see cref="Agent"/> is the detected agent kind (claude, codex, ...) or null for a plain shell.</summary>
+/// <summary>
+/// A pane; <see cref="Agent"/> is the detected agent kind (claude, codex, ...) or null for a plain shell.
+/// <see cref="SessionId"/> is the agent's own session ID when herdr's integration reports it, the same ID its hooks send.
+/// </summary>
 public sealed record HerdrPane(
     string Id,
     string WorkspaceId,
@@ -26,7 +29,8 @@ public sealed record HerdrPane(
     string? Agent,
     string? Name,
     string? Title,
-    string? Cwd)
+    string? Cwd,
+    string? SessionId = null)
 {
     /// <summary>The folder the pane is in, for a key label.</summary>
     public string FolderName => string.IsNullOrEmpty(this.Cwd) ? this.Id : Path.GetFileName(this.Cwd.TrimEnd('/')) is { Length: > 0 } name ? name : this.Cwd;
@@ -151,7 +155,8 @@ public sealed record HerdrSnapshot(
         Text(p, "agent"),
         Text(p, "name"),
         Text(p, "terminal_title_stripped") ?? Text(p, "title"),
-        Text(p, "foreground_cwd") ?? Text(p, "cwd"));
+        Text(p, "foreground_cwd") ?? Text(p, "cwd"),
+        p["agent_session"] is JsonObject session && Text(session, "kind") == "id" ? Text(session, "value") : null);
 
     // "w1:p12" sorts as 12, so p10 comes after p2.
     private static int PaneNumber(string paneId)

@@ -243,7 +243,9 @@ public sealed class HerdrClient
     public void NewTab(string? workspaceId, string? cwd) =>
         this.Request("tab.create", new JsonObject { ["workspace_id"] = workspaceId, ["cwd"] = cwd, ["focus"] = true });
 
-    public void NewWorkspace(string? cwd) => this.Request("workspace.create", new JsonObject { ["cwd"] = cwd, ["focus"] = true });
+    /// <summary>Opens a focused workspace in <paramref name="cwd"/> and returns its first pane's ID.</summary>
+    public string? NewWorkspace(string? cwd) =>
+        this.Request("workspace.create", new JsonObject { ["cwd"] = cwd, ["focus"] = true })?["root_pane"]?["pane_id"]?.GetValue<string>();
 
     /// <summary>
     /// Starts an agent of <paramref name="kind"/> (claude, codex, ...) in a shell pane.

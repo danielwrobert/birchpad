@@ -41,7 +41,9 @@ Check a deploy in `~/Library/Application Support/Logi/LogiPluginService/Logs/plu
 - Every plugin needs a `ClientApplication` subclass, even a universal one, or it fails to load with no reason logged.
 - Removing or renaming an action breaks that key in every existing profile, and Options+ never refreshes an existing profile from a new default.
   Uninstalling a plugin leaves its app entry and profile behind. Warn the user before such a change.
-- Options+ cannot import a profile for a plugin's app (`@_...`); see `docs/logitech-bug-report.md`. Defaults apply only when a plugin is installed with no existing profile for its app.
+- Options+ cannot import a profile for a plugin's app (`@_birchpad...`); see `docs/logitech-bug-report.md`. Defaults apply only when a plugin is installed with no existing profile for its app.
+  General profiles (`@_defaultmac`) and profiles bound to a plain app's bundle ID do import, so new layouts ship as those (`tools/profiles.py` `GENERAL`).
+- Actions load before `Plugin.Load`, so an action that subscribes to a service Load creates never hears it; raise change events from the plugin object instead (`HubChanged`, `HerdrChanged`).
 - The host adds its own folder Back key unless `GetNavigationArea` returns `EncoderArea`.
 - Folder pages are built on a worker thread; never do file, process, or HTTP work on the host thread or under `MenuFolder`'s lock.
 - Claude Desktop accepts only fixed `claude://claude.ai/` routes (`chat`, `project`, `new`, `settings`, `tasks`, `cowork`, `customize`, and a few more).
