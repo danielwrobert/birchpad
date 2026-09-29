@@ -231,7 +231,7 @@ public sealed class MacAutomation
     {
         var target = Quote(path.TrimEnd('/'));
         var action = write is { } w
-            ? $"tell s to write text {Quote(w.Text)} newline {(w.Newline ? "YES" : "NO")}"
+            ? $"tell s to write text ({ITermController.TextExpression(w.Text)}) newline {(w.Newline ? "YES" : "NO")}"
             : sendEscape
             ? "tell s to write text (character id 27) newline NO"
             : "select w\n            tell t to select\n            tell s to select\n            activate";

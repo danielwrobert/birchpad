@@ -78,6 +78,24 @@ public sealed class AgentsTests : IDisposable
     }
 
     [Fact]
+    public void MostUrgentPrefersApprovalsThenFinishedAndFiltersByAgent()
+    {
+        var sessions = new[]
+        {
+            Session("done", "claude", SessionSource.ClaudeDesktop, SessionState.Done, "/a"),
+            Session("codex", "codex", SessionSource.Codex, SessionState.NeedsInput, "/b"),
+        };
+        var herdr = Herdr("""[{"pane_id":"w1:p1","workspace_id":"w1","agent":"claude","agent_status":"blocked","cwd":"/c"}]""");
+        var agents = CodingAgents.Merge(sessions, herdr, Now);
+
+        Assert.Equal("h:w1:p1", CodingAgents.MostUrgent(agents)?.Key);
+        Assert.Equal("h:w1:p1", CodingAgents.MostUrgent(agents, "claude")?.Key);
+        Assert.Equal("s:codex", CodingAgents.MostUrgent(agents, "codex")?.Key);
+        Assert.Equal("s:done", CodingAgents.MostUrgent(agents.Where(a => a.Host != AgentHost.Herdr).ToList(), "claude")?.Key);
+        Assert.Null(CodingAgents.MostUrgent([]));
+    }
+
+    [Fact]
     public void ReadsCoworkTasksNewestFirstAndSkipsArchived()
     {
         var folder = Path.Combine(this.directory, "account", "org");

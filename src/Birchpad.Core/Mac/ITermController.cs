@@ -151,9 +151,18 @@ public sealed class ITermController
             """;
     }
 
-    internal static string WriteScript(string text, bool newline)
+    internal static string WriteScript(string text, bool newline) => $$"""
+        tell application id "{{MacAutomation.ItermBundleId}}"
+          tell current session of current window to write text ({{TextExpression(text)}}) newline {{(newline ? "YES" : "NO")}}
+        end tell
+        """;
+
+    /// <summary>
+    /// An AppleScript expression for <paramref name="text"/>. String literals cannot hold control characters,
+    /// so those are joined in with "character id".
+    /// </summary>
+    internal static string TextExpression(string text)
     {
-        // AppleScript string literals cannot hold control characters, so build them with "character id".
         var parts = new List<string>();
         var run = new System.Text.StringBuilder();
         foreach (var ch in text)
@@ -179,11 +188,7 @@ public sealed class ITermController
             parts.Add(MacAutomation.Quote(run.ToString()));
         }
 
-        return $$"""
-            tell application id "{{MacAutomation.ItermBundleId}}"
-              tell current session of current window to write text ({{string.Join(" & ", parts)}}) newline {{(newline ? "YES" : "NO")}}
-            end tell
-            """;
+        return string.Join(" & ", parts);
     }
 
     internal static string SplitScript(bool vertical, string command, string? cwd)

@@ -2,6 +2,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
 
     using Birchpad.Core.Agents;
@@ -67,41 +68,69 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
             return agent.SessionId != null && this.hub.Focus.Show(this.hub.Sessions.Get(agent.SessionId));
         }
 
-        // Allow picks the approval prompt's first option; Deny presses Esc. A request held by the permission hook is answered directly.
-        public Boolean Answer(CodingAgent agent, Boolean allow)
+        // The menu the agent is waiting on, read from its herdr pane; null for other hosts or when no menu shows.
+        public AgentPrompt ReadPrompt(CodingAgent agent)
         {
-            if (agent == null)
+            if (agent?.Host != AgentHost.Herdr || agent.PaneId == null)
             {
-                return false;
+                return null;
             }
 
-            if (agent.SessionId != null && this.hub.Permissions.HasPending(agent.SessionId))
+            try
             {
-                return this.hub.Permissions.AnswerSession(agent.SessionId, allow ? PermissionAnswer.Allow : PermissionAnswer.Deny);
+                return AgentPrompt.Parse(this.Herdr.ReadScreen(agent.PaneId));
             }
-
-            switch (agent.Host)
+            catch (HerdrException ex)
             {
-                case AgentHost.Herdr when agent.PaneId != null:
-                    return this.OnHerdr(h =>
-                    {
-                        if (allow)
-                        {
-                            h.SendText(agent.PaneId, "1", submit: false);
-                        }
-                        else
-                        {
-                            h.SendKeys(agent.PaneId, "esc");
-                        }
-                    });
-                case AgentHost.Terminal or AgentHost.Codex when agent.Cwd != null:
-                    return this.Mac.WriteToItermSessionAtPath(agent.Cwd, allow ? "1" : ITermController.Escape, newline: false);
-                default:
-                    // Claude Desktop and the ChatGPT app answer only through the permission hook.
-                    PluginLog.Warning($"no way to answer {agent.HostLabel} session {agent.Name} without the permission hook");
-                    return false;
+                PluginLog.Warning($"herdr read: {ex.Code}: {ex.Message}");
+                return null;
             }
         }
+
+        // Presses keys by herdr's names (down, enter, esc, left, right, digits) in the agent's pane or iTerm tab,
+        // then waits briefly so the page rebuilt afterwards reads the updated screen.
+        public Boolean PressKeys(CodingAgent agent, IReadOnlyList<String> keys)
+        {
+            Boolean sent;
+            switch (agent?.Host)
+            {
+                case AgentHost.Herdr when agent.PaneId != null:
+                    sent = this.OnHerdr(h => h.SendKeys(agent.PaneId, keys.ToArray()));
+                    break;
+                case AgentHost.Terminal or AgentHost.Codex when agent.Cwd != null:
+                    sent = this.Mac.WriteToItermSessionAtPath(agent.Cwd, String.Concat(keys.Select(TerminalBytes)), newline: false);
+                    break;
+                default:
+                    return false;
+            }
+
+            Thread.Sleep(300);
+            return sent;
+        }
+
+        // What a terminal receives for each key name.
+        private static String TerminalBytes(String key) => key switch
+        {
+            "up" => "\u001b[A",
+            "down" => "\u001b[B",
+            "right" => "\u001b[C",
+            "left" => "\u001b[D",
+            "enter" => "\r",
+            "esc" => ITermController.Escape,
+            "tab" => "\t",
+            _ => key,
+        };
+
+        // True when the agent's keys can be pressed directly, so a page can offer number keys without a readable menu.
+        public Boolean CanPressKeys(CodingAgent agent) =>
+            agent != null && ((agent.Host == AgentHost.Herdr && agent.PaneId != null) || (agent.Host is AgentHost.Terminal or AgentHost.Codex && agent.Cwd != null));
+
+        // True while the permission hook holds a request from this agent, so Allow, Always, and Deny can answer it.
+        public Boolean HookPending(CodingAgent agent) =>
+            agent?.SessionId != null && this.hub.Permissions.HasPending(agent.SessionId);
+
+        public Boolean AnswerHook(CodingAgent agent, PermissionAnswer answer) =>
+            agent?.SessionId != null && this.hub.Permissions.AnswerSession(agent.SessionId, answer);
 
         // Types a command into the agent, pressing Return when submit is set.
         public Boolean Send(CodingAgent agent, String text, Boolean submit)

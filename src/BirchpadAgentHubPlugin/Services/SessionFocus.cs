@@ -28,8 +28,9 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
                 case SessionSource.ClaudeDesktop:
                     return this.mac.OpenClaudeDesktopSession(session.SessionId);
                 case SessionSource.ClaudeCli:
-                    // Fall back to just raising iTerm when no tab is in the session's folder.
-                    return (session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd)) || this.mac.Activate(MacAutomation.ItermBundleId);
+                    // Only an iTerm tab in the session's folder; a CLI in another terminal has no window to raise,
+                    // and raising iTerm anyway shows an empty window.
+                    return session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd);
                 case SessionSource.Codex:
                     // A Codex CLI session lives in an iTerm tab; otherwise open its thread in the ChatGPT app.
                     return (session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd))

@@ -92,6 +92,61 @@ PROFILES = {
     },
 }
 
+INSTALLED = Path.home() / "Library/Application Support/Logi/LogiPluginService/Applications/Loupedeck70"
+SWITCH_PREFIX = "@switch:"
+
+
+def switch_profile(display_name, app="@_defaultmac"):
+    """A key that switches to another profile of app by its name in Options+, resolved when the profile is generated."""
+    return f"{SWITCH_PREFIX}{app}/{display_name}"
+
+
+def installed_profile_id(app, display_name):
+    for info in sorted((INSTALLED / app / "Profiles").glob("*/ProfileInfo.json")):
+        try:
+            data = json.loads(info.read_text())
+        except (OSError, ValueError):
+            continue
+        if data.get("displayName") == display_name:
+            return data.get("name")
+    return None
+
+
+def switch_action(name, key):
+    """The Options+ ChangeProfile action, in the form Options+ stores it, for a switch_profile key."""
+    app, display_name = key[len(SWITCH_PREFIX):].split("/", 1)
+    return {
+        "$type": "Loupedeck.Service.ApplicationProfileCommand, LoupedeckService",
+        "isCommand": True,
+        "name": f"$@Generic___@ProfileAction___{ident(name, 'switch', app, display_name)}",
+        "templateActionName": "$@Generic___@ChangeProfile",
+        "actionParameters": {
+            "$type": "Loupedeck.ActionEditorActionParameters, PluginApi",
+            "parameters": {
+                "$type": "Loupedeck.StringDictionaryNoCase, PluginApi",
+                "deviceType": "Loupedeck70",
+                "applicationName": app,
+                "profileName": installed_profile_id(app, display_name),
+            },
+            "count": 3,
+        },
+        "displayName": display_name,
+        "description": "Switches current device profile to selected one",
+        "groupName": "",
+        "superGroupName": "@navigation",
+        "isProfileAction": True,
+        "isMultiState": False,
+        "isResetCommand": False,
+        "adjustmentName": None,
+        "states": None,
+    }
+
+
+def placed(name, action):
+    """The action name a key stores: switch keys point at their profile action."""
+    return switch_action(name, action)["name"] if action and action.startswith(SWITCH_PREFIX) else action
+
+
 # General profiles belong to Options+'s General app (@_defaultmac), not to one app's plugin.
 # With Adapt to App off, the keypad stays on the one you pick; they are imported by hand, not shipped in a package.
 GENERAL = {
@@ -102,9 +157,9 @@ GENERAL = {
         "general": True,
         "extraPlugins": ["BirchpadHerdr"],
         "keys": [
-            (folder("BirchpadAgentHub", "CodingSessionsFolder"), "Coding sessions"), (folder("BirchpadAgentHub", "ClaudeTasksFolder"), "Claude chats and tasks"), (folder("BirchpadAgentHub", "ChatGptTasksFolder"), "ChatGPT chats and tasks"),
-            (folder("BirchpadAgentHub", "AgentsNewFolder"), "New"), (folder("BirchpadHerdr", "HerdrWorkspacesFolder"), "Workspaces"), (SCHEDULED, "Scheduled"),
-            (command("BirchpadAgentHub", "NextWaitingCommand", "all"), "Next waiting"), (folder("BirchpadAgentHub", "AllUsageFolder"), "Usage"), (folder("BirchpadAgentHub", "AgentsProjectsFolder"), "Projects"),
+            (folder("BirchpadAgentHub", "CodingSessionsFolder"), "Coding sessions"), (SCHEDULED, "Scheduled"), (folder("BirchpadAgentHub", "AllUsageFolder"), "Usage"),
+            (folder("BirchpadAgentHub", "ChatsFolder"), "Chats"), (folder("BirchpadAgentHub", "AgentsProjectsFolder"), "Projects"), (folder("BirchpadHerdr", "HerdrWorkspacesFolder"), "Workspaces"),
+            (command("BirchpadAgentHub", "NextWaitingCommand", "all"), "Next waiting"), (folder("BirchpadAgentHub", "AgentsNewFolder"), "New"), (switch_profile("Default General Profile"), "Switch profile"),
         ],
     },
 }
@@ -172,6 +227,11 @@ def check():
         for action, _ in profile["keys"]:
             if action is None:
                 continue
+            if action.startswith(SWITCH_PREFIX):
+                app, target = action[len(SWITCH_PREFIX):].split("/", 1)
+                if installed_profile_id(app, target) is None:
+                    errors.append(f"{name}: no installed {app} profile named '{target}' to switch to")
+                continue
             m = ID_PATTERN.fullmatch(action)
             if not m:
                 errors.append(f"{name}: malformed {action}")
@@ -221,7 +281,7 @@ def profile_info(name, profile):
         "conversionHistory": f"{NOW} bj 6.4.1.3246\r\n",
         "packageName": None,
         "packageVersion": None,
-        "profileActions": [],
+        "profileActions": [switch_action(name, a) for a, _ in profile["keys"] if a and a.startswith(SWITCH_PREFIX)],
         "layout": {
             "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayout7, LoupedeckService",
             "deviceType": "Loupedeck70",
@@ -248,7 +308,7 @@ def profile_info(name, profile):
                             {
                                 "$type": "Loupedeck.Service.Devices.Loupedeck7Devices.ProfileLayoutControl7, LoupedeckService",
                                 "controlId": i,
-                                "pressAction": action,
+                                "pressAction": placed(name, action),
                                 "rotateAction": None,
                             }
                             for i, (action, _) in enumerate(profile["keys"])
@@ -304,10 +364,10 @@ def preview_tile(label):
     return base64.b64encode(buf.getvalue()).decode()
 
 
-def preview(profile):
+def preview(profile, name):
     return {
         "buttonPages": [
-            {"controlId": i, "actionName": action, "displayName": label, "description": label, "image": preview_tile(label)}
+            {"controlId": i, "actionName": placed(name, action), "displayName": label, "description": label, "image": preview_tile(label)}
             for i, (action, label) in enumerate(profile["keys"])
             if action is not None
         ],
@@ -350,7 +410,7 @@ def lp5(name, profile, host=False):
         z.writestr("ApplicationInfo.json", json.dumps(app, indent=4))
         z.writestr("ProfileInfo.json", json.dumps(info, indent=4))
         z.writestr("metadata/LoupedeckPackage.yaml", package_yaml)
-        z.writestr("metadata/ProfilePreview.json", json.dumps(preview(profile), indent=4))
+        z.writestr("metadata/ProfilePreview.json", json.dumps(preview(profile, name), indent=4))
         z.writestr("metadata/AdvancedInfo.json", json.dumps({"additionalPluginNames": [p for p in plugins_for(profile) if host or profile.get("general") or p != profile["plugin"]]}, indent=4))
     return buf.getvalue()
 

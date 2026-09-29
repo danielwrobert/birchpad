@@ -43,6 +43,18 @@ public sealed class CodexState
             .Where(t => t.Id.Length > 0)
             .ToList();
 
+    /// <summary>Threads started in the ChatGPT app (chats handed to Codex, Work tasks, and app sessions), newest first; CLI threads are left out.</summary>
+    public IReadOnlyList<CodexThreadRow> AppThreads(int limit = 40) =>
+        this.Query($"select id, title, cwd, rollout_path, updated_at from threads where archived = 0 and source <> 'cli' order by updated_at desc limit {Math.Clamp(limit, 1, 500)}")
+            .Select(r => new CodexThreadRow(
+                Str(r, "id") ?? string.Empty,
+                FirstLine(Str(r, "title")),
+                Str(r, "cwd") ?? string.Empty,
+                Str(r, "rollout_path"),
+                DateTimeOffset.FromUnixTimeSeconds(Long(r, "updated_at"))))
+            .Where(t => t.Id.Length > 0)
+            .ToList();
+
     public IReadOnlyList<CodexProject> Projects() =>
         this.Query("select p.id, p.name, (select path from project_roots r where r.project_id = p.id order by position limit 1) as path from projects p order by p.position")
             .Select(r => new CodexProject(Str(r, "id") ?? string.Empty, Str(r, "name") ?? "Project", Str(r, "path")))

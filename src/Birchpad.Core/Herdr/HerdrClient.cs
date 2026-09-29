@@ -210,6 +210,10 @@ public sealed class HerdrClient
     public void SendKeys(string paneId, params string[] keys) =>
         this.Request("pane.send_keys", new JsonObject { ["pane_id"] = paneId, ["keys"] = new JsonArray(keys.Select(k => (JsonNode)k).ToArray()) });
 
+    /// <summary>The pane's visible screen as plain text, for reading the menu an agent is waiting on.</summary>
+    public string? ReadScreen(string paneId) =>
+        this.Request("pane.read", new JsonObject { ["pane_id"] = paneId, ["source"] = "visible" })?["read"]?["text"]?.GetValue<string>();
+
     /// <summary>Types text, then presses Return when <paramref name="submit"/> is set, as one ordered write.</summary>
     public void SendText(string paneId, string text, bool submit)
     {

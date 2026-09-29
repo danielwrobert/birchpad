@@ -23,6 +23,7 @@ public sealed class AppleScriptCompileTests : IDisposable
         { "iterm escape", MacAutomation.ItermScript("/Users/me/site", sendEscape: true) },
         { "iterm write at path", MacAutomation.ItermScript("/Users/me/site", sendEscape: false, write: ("/pr-review \"x\"", false)) },
         { "iterm answer at path", MacAutomation.ItermScript("/Users/me/site", sendEscape: false, write: ("1", false)) },
+        { "iterm arrows at path", MacAutomation.ItermScript("/Users/me/site", sendEscape: false, write: ("\u001b[B\u001b[B\r", false)) },
         { "menu two levels", MacAutomation.MenuScript(MacAutomation.ItermBundleId, ["Edit", "Clear Buffer"]) },
         { "menu three levels", MacAutomation.MenuScript(MacAutomation.ItermBundleId, ["Shell", "Broadcast Input", "Broadcast Input to All Panes in Current Tab"]) },
         { "write line", ITermController.WriteScript("/compact", newline: true) },

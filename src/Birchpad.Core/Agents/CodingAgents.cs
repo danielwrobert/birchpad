@@ -91,6 +91,24 @@ public static class CodingAgents
         return result;
     }
 
+    /// <summary>
+    /// The agent that most needs you, from <paramref name="agent"/> ("claude", "codex") or every agent when null:
+    /// approvals first, then questions, oldest wait first, then the most recently finished.
+    /// </summary>
+    public static CodingAgent? MostUrgent(IReadOnlyList<CodingAgent> agents, string? agent = null)
+    {
+        var candidates = agents.Where(a => agent is null || a.Agent == agent).ToList();
+        return candidates
+                .Where(a => a.IsWaitingOnUser)
+                .OrderBy(a => a.State == SessionState.NeedsApproval ? 0 : 1)
+                .ThenBy(a => a.StateSince)
+                .FirstOrDefault()
+            ?? candidates
+                .Where(a => a.State == SessionState.Done)
+                .OrderByDescending(a => a.StateSince)
+                .FirstOrDefault();
+    }
+
     private static bool SameFolder(string? a, string? b) =>
         a != null && b != null && string.Equals(a.TrimEnd('/'), b.TrimEnd('/'), StringComparison.Ordinal);
 }

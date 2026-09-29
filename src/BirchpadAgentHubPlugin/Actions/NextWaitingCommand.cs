@@ -2,7 +2,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
 {
     using System;
 
-    using Birchpad.Core.Sessions;
+    using Birchpad.Core.Agents;
 
     using Loupedeck.Tiles;
 
@@ -22,27 +22,31 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
 
         private static String AgentFor(String actionParameter) => actionParameter is "claude" or "codex" ? actionParameter : null;
 
+        // Hook sessions and herdr agents together, so an agent in a herdr pane is reached through herdr.
+        private CodingAgent MostUrgent(String actionParameter) =>
+            this.Hub is { } hub ? CodingAgents.MostUrgent(hub.Agents.All(), AgentFor(actionParameter)) : null;
+
         protected override void RunCommand(String actionParameter)
         {
             var hub = this.Hub;
-            var session = hub?.Sessions.MostUrgent(AgentFor(actionParameter));
-            if (session != null)
+            var agent = this.MostUrgent(actionParameter);
+            if (agent != null)
             {
-                // Opening a session runs open or osascript; keep it off the key-press thread.
-                System.Threading.Tasks.Task.Run(() => hub.Focus.Show(session));
+                // Opening an agent runs open, osascript, or a herdr call; keep it off the key-press thread.
+                System.Threading.Tasks.Task.Run(() => hub.Agents.Show(agent));
             }
         }
 
         protected override BitmapImage GetCommandImage(String actionParameter, PluginImageSize imageSize)
         {
-            var session = this.Hub?.Sessions.MostUrgent(AgentFor(actionParameter));
-            if (session == null)
+            var agent = this.MostUrgent(actionParameter);
+            if (agent == null)
             {
                 return TileRenderer.Ring(String.Empty, "Next", "nothing waiting", TileRenderer.Idle, imageSize);
             }
 
-            var ring = session.IsWaitingOnUser && !this.Hub.PulseOn ? TileRenderer.Idle : TileRenderer.ColorFor(session.State);
-            return TileRenderer.Ring("NEXT", session.DisplayName, TileRenderer.LabelFor(session.State), ring, imageSize);
+            var ring = agent.IsWaitingOnUser && !this.Hub.PulseOn ? TileRenderer.Idle : TileRenderer.ColorFor(agent.State);
+            return TileRenderer.Ring("NEXT", agent.Name, TileRenderer.LabelFor(agent.State), ring, imageSize);
         }
     }
 }
