@@ -32,17 +32,21 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
         public IReadOnlyList<CodingAgent> All() =>
             CodingAgents.Merge(this.hub.Sessions.All(), this.hub.HerdrWatcher.Latest, DateTimeOffset.UtcNow);
 
-        public CodingAgent Find(String key)
+        public CodingAgent Find(String key) => this.All().FirstOrDefault(a => a.Key == key);
+
+        // The same agent after the list changed: its key changes when hook events start or stop arriving
+        // for a herdr pane, so fall back to its session ID, then its pane.
+        public CodingAgent Find(CodingAgent seen)
         {
-            foreach (var agent in this.All())
+            if (seen == null)
             {
-                if (agent.Key == key)
-                {
-                    return agent;
-                }
+                return null;
             }
 
-            return null;
+            var all = this.All();
+            return all.FirstOrDefault(a => a.Key == seen.Key)
+                ?? (seen.SessionId == null ? null : all.FirstOrDefault(a => a.SessionId == seen.SessionId))
+                ?? (seen.PaneId == null ? null : all.FirstOrDefault(a => a.PaneId == seen.PaneId));
         }
 
         // True while the agent waits on an approval, from a held hook request or from what herdr sees.

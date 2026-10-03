@@ -32,20 +32,23 @@ public sealed class CodexState
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".codex", "state_5.sqlite");
     }
 
-    public IReadOnlyList<CodexThreadRow> RecentThreads(int limit = 50) =>
-        this.Query($"select id, title, cwd, rollout_path, updated_at from threads where archived = 0 order by updated_at desc limit {Math.Clamp(limit, 1, 500)}")
-            .Select(r => new CodexThreadRow(
-                Str(r, "id") ?? string.Empty,
-                FirstLine(Str(r, "title")),
-                Str(r, "cwd") ?? string.Empty,
-                Str(r, "rollout_path"),
-                DateTimeOffset.FromUnixTimeSeconds(Long(r, "updated_at"))))
-            .Where(t => t.Id.Length > 0)
-            .ToList();
+    public IReadOnlyList<CodexThreadRow> RecentThreads(int limit = 50) => this.Threads("archived = 0", limit);
 
     /// <summary>Threads started in the ChatGPT app (chats handed to Codex, Work tasks, and app sessions), newest first; CLI threads are left out.</summary>
-    public IReadOnlyList<CodexThreadRow> AppThreads(int limit = 40) =>
-        this.Query($"select id, title, cwd, rollout_path, updated_at from threads where archived = 0 and source <> 'cli' order by updated_at desc limit {Math.Clamp(limit, 1, 500)}")
+    public IReadOnlyList<CodexThreadRow> AppThreads(int limit = 40) => this.Threads("archived = 0 and source <> 'cli'", limit);
+
+    // A thread's title is its short name when Codex has given it one; the title column holds the first message.
+    // Databases from before the name column existed fall back to the title column.
+    private IReadOnlyList<CodexThreadRow> Threads(string where, int limit)
+    {
+        var tail = $"from threads where {where} order by updated_at desc limit {Math.Clamp(limit, 1, 500)}";
+        var rows = this.Query($"select id, coalesce(nullif(name, ''), title) as title, cwd, rollout_path, updated_at {tail}");
+        if (rows.Count == 0)
+        {
+            rows = this.Query($"select id, title, cwd, rollout_path, updated_at {tail}");
+        }
+
+        return rows
             .Select(r => new CodexThreadRow(
                 Str(r, "id") ?? string.Empty,
                 FirstLine(Str(r, "title")),
@@ -54,6 +57,7 @@ public sealed class CodexState
                 DateTimeOffset.FromUnixTimeSeconds(Long(r, "updated_at"))))
             .Where(t => t.Id.Length > 0)
             .ToList();
+    }
 
     public IReadOnlyList<CodexProject> Projects() =>
         this.Query("select p.id, p.name, (select path from project_roots r where r.project_id = p.id order by position limit 1) as path from projects p order by p.position")

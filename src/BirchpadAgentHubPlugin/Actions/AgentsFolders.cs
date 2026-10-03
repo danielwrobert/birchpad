@@ -216,12 +216,12 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
 
             return hub.Agents.All().Select(agent =>
             {
-                var key = agent.Key;
-                return new MenuItem(key, agent.Name)
+                CodingAgent Current() => hub.Agents.Find(agent);
+                return new MenuItem(agent.Key, agent.Name)
                 {
-                    Image = size => this.AgentTile(hub.Agents.Find(key), size),
-                    Run = () => hub.Agents.Show(hub.Agents.Find(key)),
-                    Open = () => this.AgentPage(() => hub.Agents.Find(key)),
+                    Image = size => this.AgentTile(Current(), size),
+                    Run = () => hub.Agents.Show(Current()),
+                    Open = () => this.AgentPage(Current),
                 };
             }).ToList();
         }

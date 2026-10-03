@@ -91,15 +91,22 @@ namespace Loupedeck.Tiles
 
         public override IEnumerable<String> GetButtonPressActionNames(DeviceType deviceType)
         {
+            // A folder left open across a plugin reload is drawn again without Activate, so it has no page.
+            // Start at the first page instead of showing a Back key with nothing behind it.
+            this.RecoverIfEmpty();
             lock (this.gate)
             {
                 var slots = MenuLayout.Arrange(this.items.Count, this.page);
                 var names = new String[MenuLayout.KeyCount];
+
+                // On the first page Back is the host's own navigate-up action, so the host closes the folder itself.
+                // A folder kept open across a plugin reload was never activated, and Close() cannot close it.
+                var atRoot = this.stack.Count <= 1;
                 for (var i = 0; i < slots.Length; i++)
                 {
                     names[i] = slots[i].Role switch
                     {
-                        KeyRole.Back => this.CreateCommandName(BackName),
+                        KeyRole.Back => atRoot ? PluginDynamicFolder.NavigateUpActionName : this.CreateCommandName(BackName),
                         KeyRole.More => this.CreateCommandName(MoreName),
                         KeyRole.Item => this.CreateCommandName(ItemPrefix + KeyFor(this.items[slots[i].ItemIndex].Id)),
                         _ => this.CreateCommandName(BlankPrefix + i),
@@ -124,6 +131,7 @@ namespace Loupedeck.Tiles
                 if (atRoot)
                 {
                     this.Close();
+                    this.RecoverIfEmpty();
                     return;
                 }
 
@@ -226,6 +234,26 @@ namespace Loupedeck.Tiles
             }
 
             return this.Lookup(actionParameter)?.Label ?? String.Empty;
+        }
+
+        // Opens the first page when the folder has none, which happens when the host keeps a folder open across a reload.
+        private void RecoverIfEmpty()
+        {
+            lock (this.gate)
+            {
+                if (this.stack.Count > 0)
+                {
+                    return;
+                }
+            }
+
+            Task.Run(() => this.Navigate(stack =>
+            {
+                if (stack.Count == 0)
+                {
+                    stack.Add(this.Root);
+                }
+            }));
         }
 
         // Rebuilds the current page from live data and redraws it; safe from any thread and never blocks the caller.
