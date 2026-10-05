@@ -71,20 +71,18 @@ public static class CodingAgents
                 _ => AgentHost.Terminal,
             };
 
-            // herdr reads the screen, so it sees an approval prompt even when no hook reported one.
-            var state = pane?.Status == HerdrStatus.Blocked && !session.IsWaitingOnUser ? SessionState.NeedsApproval : session.State;
+            // herdr reads the screen, so for a pane it is the more current source: it sees a prompt no hook reported,
+            // and it sees the agent working again after an answer while the hook still says it waits.
+            var state = pane == null || pane.Status == HerdrStatus.Unknown ? session.State
+                : pane.Status == HerdrStatus.Blocked ? (session.IsWaitingOnUser ? session.State : SessionState.NeedsApproval)
+                : session.IsWaitingOnUser || session.State == SessionState.Idle ? FromHerdr(pane.Status)
+                : session.State;
             result.Add(new CodingAgent("s:" + session.SessionId, session.Agent, host, state, session.StateSince, session.DisplayName, session.Cwd, session.SessionId, pane?.Id));
         }
 
         foreach (var pane in unmatched)
         {
-            var state = pane.Status switch
-            {
-                HerdrStatus.Working => SessionState.Working,
-                HerdrStatus.Blocked => SessionState.NeedsApproval,
-                HerdrStatus.Done => SessionState.Done,
-                _ => SessionState.Idle,
-            };
+            var state = FromHerdr(pane.Status);
             result.Add(new CodingAgent("h:" + pane.Id, pane.Agent ?? "agent", AgentHost.Herdr, state, now, pane.Name ?? pane.FolderName, pane.Cwd, pane.SessionId, pane.Id));
         }
 
@@ -108,6 +106,14 @@ public static class CodingAgents
                 .OrderByDescending(a => a.StateSince)
                 .FirstOrDefault();
     }
+
+    private static SessionState FromHerdr(HerdrStatus status) => status switch
+    {
+        HerdrStatus.Working => SessionState.Working,
+        HerdrStatus.Blocked => SessionState.NeedsApproval,
+        HerdrStatus.Done => SessionState.Done,
+        _ => SessionState.Idle,
+    };
 
     private static bool SameFolder(string? a, string? b) =>
         a != null && b != null && string.Equals(a.TrimEnd('/'), b.TrimEnd('/'), StringComparison.Ordinal);

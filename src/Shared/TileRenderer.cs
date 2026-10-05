@@ -110,6 +110,18 @@ namespace Loupedeck.Tiles
             }
         }
 
+        // The Back key: a left arrow, like the keypad's own Back.
+        public static BitmapImage Back(PluginImageSize imageSize)
+        {
+            var size = Pixels(imageSize);
+            using (var b = new BitmapBuilder(size, size))
+            {
+                b.Clear(Empty);
+                b.DrawText("←", 0, 0, size, size, BitmapColor.White, size / 2);
+                return b.ToImage();
+            }
+        }
+
         public static BitmapImage Command(String label, BitmapColor background, PluginImageSize imageSize, String badge = null)
         {
             var size = Pixels(imageSize);

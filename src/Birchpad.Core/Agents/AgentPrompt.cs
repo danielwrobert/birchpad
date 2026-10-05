@@ -58,6 +58,7 @@ public sealed partial record AgentPrompt(IReadOnlyList<PromptOption> Options, in
 
         var options = new List<PromptOption>();
         var cursor = 0;
+        var sawCursor = false;
         for (var i = start; i < lines.Length; i++)
         {
             var m = NumberedLine().Match(lines[i]);
@@ -69,12 +70,14 @@ public sealed partial record AgentPrompt(IReadOnlyList<PromptOption> Options, in
             if (m.Groups["cursor"].Success)
             {
                 cursor = options.Count;
+                sawCursor = true;
             }
 
             options.Add(new PromptOption(options.Count, m.Groups["label"].Value.Trim()));
         }
 
-        return (options, cursor);
+        // A menu always shows the ❯ cursor on one option; a numbered list in the agent's reply never does.
+        return sawCursor ? (options, cursor) : null;
     }
 
     // "❯ No, exit" with "  Yes, I trust this folder" below: the lines whose text starts in the same column as the marked one.

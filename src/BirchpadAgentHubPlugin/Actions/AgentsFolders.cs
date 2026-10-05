@@ -45,6 +45,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
 
             Boolean Press(params String[] keys) => hub.Agents.PressKeys(find(), keys);
             var items = new List<MenuItem>();
+            var readable = hub.Agents.CanReadScreen(agent);
             if (hub.Agents.ReadPrompt(agent) is { } prompt)
             {
                 foreach (var option in prompt.Options)
@@ -53,7 +54,13 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
                     items.Add(new MenuItem($"option:{option.Index}:{option.Label}", $"{option.Index + 1} {option.Label}")
                     {
                         Color = option.Index == prompt.Cursor ? TileRenderer.Approval : TileRenderer.Working,
-                        Run = () => Press(keys),
+                        Run = () =>
+                        {
+                            // The answer went to the agent's own menu, so the permission hook's copy of the request is settled too.
+                            var pressed = Press(keys);
+                            hub.Agents.ReleaseHook(find());
+                            return pressed;
+                        },
                     });
                 }
 
@@ -62,6 +69,11 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
                     items.Add(new MenuItem("tab-previous", "‹ Tab") { Color = TileRenderer.Idle, Run = () => Press("left") });
                     items.Add(new MenuItem("tab-next", "Tab ›") { Color = TileRenderer.Idle, Run = () => Press("right") });
                 }
+            }
+            else if (readable)
+            {
+                // The agent's screen is readable but its menu is not drawn yet, or was just answered: wait for it.
+                items.Add(new MenuItem("waiting", "…") { Color = TileRenderer.Empty });
             }
             else if (hub.Agents.HookPending(agent))
             {

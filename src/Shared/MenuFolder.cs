@@ -3,6 +3,7 @@ namespace Loupedeck.Tiles
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Birchpad.Core.Menu;
@@ -47,6 +48,12 @@ namespace Loupedeck.Tiles
         private IReadOnlyList<MenuItem> items = Array.Empty<MenuItem>();
         private Dictionary<String, MenuItem> byKey = new Dictionary<String, MenuItem>(StringComparer.Ordinal);
         private Int32 page;
+
+        // The Back press waiting for its release before leaving the folder; 0 when none is.
+        private Int32 pendingUp;
+
+        // How long a Back press on the first page waits for its release before leaving anyway.
+        private static readonly TimeSpan LeaveDelay = TimeSpan.FromMilliseconds(700);
 
         // Bumped on every navigation, so a slow page build for a page the user already left is thrown away.
         private Int32 generation;
@@ -99,14 +106,12 @@ namespace Loupedeck.Tiles
                 var slots = MenuLayout.Arrange(this.items.Count, this.page);
                 var names = new String[MenuLayout.KeyCount];
 
-                // On the first page Back is the host's own navigate-up action, so the host closes the folder itself.
-                // A folder kept open across a plugin reload was never activated, and Close() cannot close it.
-                var atRoot = this.stack.Count <= 1;
+
                 for (var i = 0; i < slots.Length; i++)
                 {
                     names[i] = slots[i].Role switch
                     {
-                        KeyRole.Back => atRoot ? PluginDynamicFolder.NavigateUpActionName : this.CreateCommandName(BackName),
+                        KeyRole.Back => this.CreateCommandName(BackName),
                         KeyRole.More => this.CreateCommandName(MoreName),
                         KeyRole.Item => this.CreateCommandName(ItemPrefix + KeyFor(this.items[slots[i].ItemIndex].Id)),
                         _ => this.CreateCommandName(BlankPrefix + i),
@@ -127,11 +132,13 @@ namespace Loupedeck.Tiles
                     atRoot = this.stack.Count <= 1;
                 }
 
-                // Back on the first page leaves the folder for the home page.
+                // Back on the first page leaves the folder, but only once the key is released: the home page puts another
+                // folder under the same key, and a release that lands there opens it again. The release event leaves at once;
+                // the timer covers a host that does not report releases.
                 if (atRoot)
                 {
-                    this.Close();
-                    this.RecoverIfEmpty();
+                    var token = Interlocked.Increment(ref this.pendingUp);
+                    Task.Delay(LeaveDelay).ContinueWith(_ => this.LeaveFolder(token));
                     return;
                 }
 
@@ -196,7 +203,7 @@ namespace Loupedeck.Tiles
         {
             if (actionParameter == BackName)
             {
-                return TileRenderer.Command("Back", TileRenderer.Empty, imageSize);
+                return TileRenderer.Back(imageSize);
             }
 
             if (actionParameter == MoreName)
@@ -234,6 +241,36 @@ namespace Loupedeck.Tiles
             }
 
             return this.Lookup(actionParameter)?.Label ?? String.Empty;
+        }
+
+        public override Boolean ProcessButtonEvent2(String actionParameter, DeviceButtonEvent2 buttonEvent)
+        {
+            if (actionParameter == BackName && buttonEvent?.EventType == DeviceButtonEventType.Release)
+            {
+                this.LeaveFolder(Volatile.Read(ref this.pendingUp));
+            }
+
+            return base.ProcessButtonEvent2(actionParameter, buttonEvent);
+        }
+
+        // Runs the host's own folder-up action, which also closes a folder the host kept open across a plugin reload;
+        // Close() does nothing for that one. Each Back press leaves at most once.
+        private void LeaveFolder(Int32 token)
+        {
+            if (token == 0 || Interlocked.CompareExchange(ref this.pendingUp, 0, token) != token)
+            {
+                return;
+            }
+
+            try
+            {
+                this.ExecuteGenericAction(GenericActionNames.DynamicFolderGoUp, null, 0);
+            }
+            catch (Exception ex)
+            {
+                this.Plugin?.Log?.Warning($"{this.DisplayName}: folder-up failed, closing instead: {ex.Message}");
+                this.Close();
+            }
         }
 
         // Opens the first page when the folder has none, which happens when the host keeps a folder open across a reload.

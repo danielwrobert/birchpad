@@ -133,6 +133,18 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
         public Boolean HookPending(CodingAgent agent) =>
             agent?.SessionId != null && this.hub.Permissions.HasPending(agent.SessionId);
 
+        // True when the agent's menu can be read from its screen, which today means a herdr pane.
+        public Boolean CanReadScreen(CodingAgent agent) => agent?.Host == AgentHost.Herdr && agent.PaneId != null;
+
+        // Lets go of a request the permission hook holds once the agent was answered on its own screen.
+        public void ReleaseHook(CodingAgent agent)
+        {
+            if (agent?.SessionId != null)
+            {
+                this.hub.Permissions.ReleaseSession(agent.SessionId);
+            }
+        }
+
         public Boolean AnswerHook(CodingAgent agent, PermissionAnswer answer) =>
             agent?.SessionId != null && this.hub.Permissions.AnswerSession(agent.SessionId, answer);
 

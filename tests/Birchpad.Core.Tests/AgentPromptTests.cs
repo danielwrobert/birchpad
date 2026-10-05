@@ -79,6 +79,23 @@ public sealed class AgentPromptTests
     }
 
     [Fact]
+    public void IgnoresANumberedListInTheAgentsReply()
+    {
+        const string working = """
+            ⏺ Here is what is left:
+              1. Terms pages: the edits are already live.
+              2. Support token: every page now links to /support.
+              3. Set ADMIN_EMAIL to your confirmed address.
+            · Kneading… (3m 6s · ↓ 18.2k tokens)
+            ────────────────────────────────────────────────────────────
+            ❯
+            ────────────────────────────────────────────────────────────
+            """;
+
+        Assert.Null(AgentPrompt.Parse(working));
+    }
+
+    [Fact]
     public void FindsNoMenuOnAnIdleScreen()
     {
         const string idle = """

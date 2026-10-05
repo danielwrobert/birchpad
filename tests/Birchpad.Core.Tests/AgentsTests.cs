@@ -57,6 +57,18 @@ public sealed class AgentsTests : IDisposable
     }
 
     [Fact]
+    public void HerdrWorkingClearsAStaleApprovalFromTheHook()
+    {
+        var sessions = new[] { Session("abc", "claude", SessionSource.ClaudeCli, SessionState.NeedsApproval, "/Users/me/logi") };
+        var herdr = Herdr("""[{"pane_id":"w1:p2","workspace_id":"w1","agent":"claude","agent_status":"working","agent_session":{"agent":"claude","kind":"id","source":"herdr:claude","value":"abc"}}]""");
+
+        var agent = Assert.Single(CodingAgents.Merge(sessions, herdr, Now));
+
+        Assert.Equal(SessionState.Working, agent.State);
+        Assert.False(agent.IsWaitingOnUser);
+    }
+
+    [Fact]
     public void KeepsDesktopSessionsOutOfHerdrAndListsUnmatchedPanes()
     {
         var sessions = new[]
