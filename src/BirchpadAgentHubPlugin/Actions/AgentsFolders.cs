@@ -12,6 +12,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
     using Birchpad.Core.Mac;
     using Birchpad.Core.Permissions;
     using Birchpad.Core.Sessions;
+    using Birchpad.Core.Usage;
 
     using Loupedeck.BirchpadAgentHubPlugin.Services;
     using Loupedeck.Tiles;
@@ -27,7 +28,8 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
 
         // While the agent waits: the options of the menu on its screen, then Prev and Next tab for a set of questions,
         // then Esc. A menu that cannot be read falls back to Allow, Always, and Deny for a request the permission hook holds,
-        // or plain number keys. The rest of the time: one key per entry in slash-commands.json, sent to the agent.
+        // or plain number keys. The rest of the time: the agent's context and its provider's weekly limit on the top row,
+        // then one key per entry in slash-commands.json, sent to the agent. An answer returns to the list the agent came from.
         protected IReadOnlyList<MenuItem> AgentPage(Func<CodingAgent> find, Func<String, Boolean, Boolean> send = null)
         {
             var hub = this.Hub;
@@ -38,9 +40,11 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
             }
 
             send ??= (text, submit) => hub.Agents.Send(find(), text, submit);
+            IReadOnlyList<MenuItem> Commands() =>
+                this.ContextItems(agent).Concat(SlashCommands.Items(send, message => PluginLog.Warning(message))).ToList();
             if (!hub.Agents.NeedsAnswer(agent))
             {
-                return SlashCommands.Items(send, message => PluginLog.Warning(message));
+                return Commands();
             }
 
             Boolean Press(params String[] keys) => hub.Agents.PressKeys(find(), keys);
@@ -48,6 +52,8 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
             var readable = hub.Agents.CanReadScreen(agent);
             if (hub.Agents.ReadPrompt(agent) is { } prompt)
             {
+                // A tabbed question set moves to its next question after each answer, so stay until no menu is left.
+                Func<Boolean> leave = prompt.Tabs.Count == 0 ? () => true : () => hub.Agents.ReadPrompt(find()) == null;
                 foreach (var option in prompt.Options)
                 {
                     var keys = prompt.KeysFor(option).ToArray();
@@ -61,6 +67,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
                             hub.Agents.ReleaseHook(find());
                             return pressed;
                         },
+                        Leave = leave,
                     });
                 }
 
@@ -77,25 +84,74 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Actions
             }
             else if (hub.Agents.HookPending(agent))
             {
-                items.Add(new MenuItem("allow", "Allow") { Color = TileRenderer.Done, Run = () => hub.Agents.AnswerHook(find(), PermissionAnswer.Allow) });
-                items.Add(new MenuItem("always", "Always") { Color = TileRenderer.Done, Run = () => hub.Agents.AnswerHook(find(), PermissionAnswer.AllowAlways) });
-                items.Add(new MenuItem("deny", "Deny") { Color = TileRenderer.Failed, Run = () => hub.Agents.AnswerHook(find(), PermissionAnswer.Deny) });
+                items.Add(new MenuItem("allow", "Allow") { Color = TileRenderer.Done, Run = () => hub.Agents.AnswerHook(find(), PermissionAnswer.Allow), Leave = Always });
+                items.Add(new MenuItem("always", "Always") { Color = TileRenderer.Done, Run = () => hub.Agents.AnswerHook(find(), PermissionAnswer.AllowAlways), Leave = Always });
+                items.Add(new MenuItem("deny", "Deny") { Color = TileRenderer.Failed, Run = () => hub.Agents.AnswerHook(find(), PermissionAnswer.Deny), Leave = Always });
                 return items;
             }
             else if (hub.Agents.CanPressKeys(agent))
             {
                 foreach (var n in new[] { "1", "2", "3" })
                 {
-                    items.Add(new MenuItem("number:" + n, n) { Color = TileRenderer.Working, Run = () => Press(n) });
+                    items.Add(new MenuItem("number:" + n, n) { Color = TileRenderer.Working, Run = () => Press(n), Leave = Always });
                 }
             }
             else
             {
-                return SlashCommands.Items(send, message => PluginLog.Warning(message));
+                return Commands();
             }
 
             items.Add(new MenuItem("escape", "Esc") { Color = TileRenderer.Failed, Run = () => Press("esc") });
             return items;
+        }
+
+        private static Boolean Always() => true;
+
+        // Two keys for the top row: how full the agent's context is, and its provider's weekly limit.
+        // Both are read while the page is built, never while a key is drawn.
+        private IEnumerable<MenuItem> ContextItems(CodingAgent agent)
+        {
+            var hub = this.Hub;
+            var header = agent.Agent.ToUpperInvariant();
+            var context = this.ContextPercent(agent);
+            yield return new MenuItem("context", "Context")
+            {
+                Image = size => TileRenderer.Ring(header, $"Context {Format.Percent(context)}", "this session", Format.UsageColor(context), size),
+            };
+
+            var week = agent.Agent switch
+            {
+                "claude" => hub.Usage.Limits?.SevenDay,
+                "codex" when hub.CodexUsage?.Secondary is { } w => new LimitWindow(w.UsedPercent, w.ResetsAt),
+                _ => null,
+            };
+            yield return new MenuItem("week", "Week")
+            {
+                Image = size => TileRenderer.Ring(header, $"Week {Format.Percent(week?.UsedPercent)}", Format.Resets(week?.ResetsAt, DateTimeOffset.UtcNow), Format.UsageColor(week?.UsedPercent), size),
+            };
+        }
+
+        // Claude: the session's status line when it reports one, else its transcript. Codex: its thread's rollout log.
+        private Double? ContextPercent(CodingAgent agent)
+        {
+            var hub = this.Hub;
+            if (agent.SessionId == null)
+            {
+                return null;
+            }
+
+            switch (agent.Agent)
+            {
+                case "claude":
+                    var session = hub.Sessions.Get(agent.SessionId);
+                    return hub.Usage.ForSession(agent.SessionId)?.ContextPercent
+                        ?? ClaudeTranscript.ReadContext(session?.TranscriptPath, session?.Model)?.Percent;
+                case "codex":
+                    var thread = hub.CodexState.RecentThreads(200).FirstOrDefault(t => t.Id == agent.SessionId);
+                    return CodexState.ReadContext(thread?.RolloutPath)?.Percent;
+                default:
+                    return null;
+            }
         }
 
         // A coding agent's key: where it runs, its name, and its status with time in that status.

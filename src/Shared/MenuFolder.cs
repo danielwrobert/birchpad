@@ -31,6 +31,9 @@ namespace Loupedeck.Tiles
 
         // Opens a deeper page when pressed. With Run set too, Run also runs, once per press, while the page opens.
         public Func<IReadOnlyList<MenuItem>> Open { get; set; }
+
+        // Checked after Run succeeds; true returns to the page before, as an answered agent page does.
+        public Func<Boolean> Leave { get; set; }
     }
 
     // A category key that opens nested pages whose items are listed at run time.
@@ -179,14 +182,26 @@ namespace Loupedeck.Tiles
             if (item?.Run != null)
             {
                 var run = item.Run;
+                var leave = item.Leave;
                 var log = this.Plugin?.Log;
+                Int32 pressedAt;
+                lock (this.gate)
+                {
+                    pressedAt = this.generation;
+                }
+
                 Task.Run(() =>
                 {
+                    var left = false;
                     try
                     {
                         if (!run())
                         {
                             log?.Warning($"{this.DisplayName}: '{item.Id}' failed");
+                        }
+                        else if (leave?.Invoke() == true)
+                        {
+                            left = this.GoBackFrom(pressedAt);
                         }
                     }
                     catch (Exception ex)
@@ -194,7 +209,10 @@ namespace Loupedeck.Tiles
                         log?.Error(ex, $"{this.DisplayName}: '{item.Id}' threw");
                     }
 
-                    this.Refresh();
+                    if (!left)
+                    {
+                        this.Refresh();
+                    }
                 });
             }
         }
@@ -271,6 +289,27 @@ namespace Loupedeck.Tiles
                 this.Plugin?.Log?.Warning($"{this.DisplayName}: folder-up failed, closing instead: {ex.Message}");
                 this.Close();
             }
+        }
+
+        // Returns one page, unless the user already moved on from the page that was showing when the key was pressed.
+        private Boolean GoBackFrom(Int32 pressedAt)
+        {
+            lock (this.gate)
+            {
+                if (this.generation != pressedAt || this.stack.Count <= 1)
+                {
+                    return false;
+                }
+            }
+
+            this.Navigate(stack =>
+            {
+                if (this.generation == pressedAt && stack.Count > 1)
+                {
+                    stack.RemoveAt(stack.Count - 1);
+                }
+            });
+            return true;
         }
 
         // Opens the first page when the folder has none, which happens when the host keeps a folder open across a reload.
