@@ -42,7 +42,16 @@ Every list of agents leads to one agent's page, and everything you send to an ag
 
 Pressing any agent in a list does two things at once: it brings that agent to the front in its app, and it opens the agent's page on the keypad.
 
-While the agent works or is done, the page holds one key per entry in `slash-commands.json`, sent to that agent.
+While the agent works or is done, the top row holds Back, the session's context use, and the provider's weekly limit.
+The keys after them hold one entry each from `slash-commands.json`, sent to that agent.
+
+| | | |
+| --- | --- | --- |
+| Back | Context 42% | Week 18% |
+| /clear | /compact | /review |
+
+- Context reads a Claude session's status line or transcript, or a Codex thread's rollout log; a herdr agent without a session shows `?`.
+- Week is Claude's seven-day limit or Codex's weekly limit, with its reset time.
 
 While the agent waits, the page holds the menu it is showing, read from its herdr pane:
 
@@ -54,6 +63,8 @@ While the agent waits, the page holds the menu it is showing, read from its herd
 - Each option key moves the menu's cursor to that option and presses Enter, so numbered permission prompts and unnumbered menus (such as the folder trust check) work the same way.
 - A set of questions adds ‹ Tab and Tab › to move between questions.
 - The option under the cursor is amber.
+- An answer (an option, Allow, Always, Deny, or a number key) returns to the list the agent came from, ready for the next agent.
+  In a set of questions, the page stays until no menu is left on the agent's screen.
 - When no menu can be read (an iTerm tab, Claude Desktop, or the ChatGPT app), the page offers Allow, Always, and Deny for a request the permission hook holds, else number keys 1 to 3 and Esc where keys can be pressed.
 - The screen is read only to label the keys; nothing is stored or logged.
 
