@@ -12,6 +12,8 @@ Five Logi Actions SDK plugins that put Claude Code, Codex, iTerm, and herdr on a
 Each app opens on a home page of categories; every category opens pages listed at run time, with Back in the top-left key.
 The design is in `docs/workflow-design.md`, and each app plugin ships its home page as a default profile.
 
+To install and use the plugins with Ghostty and herdr, without iTerm2 or a development setup, follow `SETUP.md`.
+
 The plan is in `2026-09-26-logi-mx-keypad-plugins.md`.
 Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, `docs/iterm.md`, and `docs/herdr.md`.
 
@@ -20,7 +22,7 @@ Developer notes are in `docs/agent-hub.md`, `docs/app-plugins.md`, `docs/iterm.m
 - macOS with Logi Options+ and Logi Plugin Service.
 - .NET 10 SDK (`brew install dotnet`) and LogiPluginTool (`dotnet tool install --global LogiPluginTool`).
 - The `claude` and `codex` CLIs for cloud lists, thread names, and usage.
-- iTerm shell integration, so keys can find a session's tab by folder.
+- iTerm shell integration, or Ghostty 1.3 or later (its shell integration is on by default), so keys can find a CLI session's tab by folder.
 - herdr 0.9 or later for the Herdr plugin.
 
 ## Build and run from source
@@ -51,10 +53,12 @@ While Logitech's "Claude Desktop (Beta)" plugin is installed, leave off `--block
 
 ```sh
 tools/package.sh
-logiplugintool install dist/AgentHub.lplug4
+open dist/BirchpadAgentHub.lplug4
 ```
 
 `tools/package.sh` runs the tests, builds each plugin in Release, and writes a verified `.lplug4` per plugin to `dist/`.
+Opening a package installs it after you accept the Options+ prompt; `logiplugintool install` fails against Logi Plugin Service.
+`SETUP.md` covers the full install: which plugins, hooks, permissions, and the Agents profile.
 
 ## Settings files
 
@@ -69,4 +73,4 @@ The Prompts and Commands folders reread their file each time they open.
 ## Permissions
 
 Logi Plugin Service needs Accessibility permission for menu clicks and keystrokes.
-macOS asks for Automation permission the first time a key controls iTerm, Claude, or ChatGPT.
+macOS asks for Automation permission the first time a key controls iTerm, Ghostty, Claude, or ChatGPT.

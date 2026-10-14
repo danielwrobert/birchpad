@@ -19,6 +19,8 @@ public sealed class MacAutomation
 
     public const string ItermBundleId = "com.googlecode.iterm2";
 
+    public const string GhosttyBundleId = "com.mitchellh.ghostty";
+
     /// <summary>The ChatGPT desktop app, which hosts Codex.</summary>
     public const string CodexBundleId = "com.openai.codex";
 
@@ -255,6 +257,118 @@ public sealed class MacAutomation
             return "missing"
             """;
     }
+
+    /// <summary>
+    /// Brings forward the terminal tab whose working directory is <paramref name="path"/>, in iTerm or Ghostty.
+    /// Only a running terminal is asked, so a key press never launches one.
+    /// </summary>
+    public bool FocusTerminalAtPath(string path) =>
+        (this.IsRunning(ItermBundleId) && this.FocusItermSessionAtPath(path))
+        || (this.IsRunning(GhosttyBundleId) && this.AppleScript(GhosttyScript(path, "focus t")) == "found");
+
+    /// <summary>Sends Escape to the terminal tab whose working directory is <paramref name="path"/>.</summary>
+    public bool SendEscapeToTerminalAtPath(string path) =>
+        (this.IsRunning(ItermBundleId) && this.SendEscapeToItermSessionAtPath(path))
+        || (this.IsRunning(GhosttyBundleId) && this.AppleScript(GhosttyScript(path, GhosttyKeys(["esc"]))) == "found");
+
+    /// <summary>
+    /// Types <paramref name="text"/> into the terminal tab whose working directory is <paramref name="path"/>,
+    /// then presses Return when <paramref name="newline"/> is set. The terminal need not be in front.
+    /// </summary>
+    public bool WriteToTerminalAtPath(string path, string text, bool newline) =>
+        (this.IsRunning(ItermBundleId) && this.WriteToItermSessionAtPath(path, text, newline))
+        || (this.IsRunning(GhosttyBundleId) && this.AppleScript(GhosttyScript(path, GhosttyWrite(text, newline))) == "found");
+
+    /// <summary>
+    /// Presses keys by herdr's names (up, down, left, right, enter, esc, tab, or a character such as a digit)
+    /// in the terminal tab whose working directory is <paramref name="path"/>.
+    /// </summary>
+    public bool PressKeysInTerminalAtPath(string path, IReadOnlyList<string> keys) =>
+        (this.IsRunning(ItermBundleId) && this.WriteToItermSessionAtPath(path, string.Concat(keys.Select(TerminalBytes)), newline: false))
+        || (this.IsRunning(GhosttyBundleId) && this.AppleScript(GhosttyScript(path, GhosttyKeys(keys))) == "found");
+
+    /// <summary>
+    /// Whether an app is running, asked without naming it in AppleScript:
+    /// a script that names an app that is not installed fails to compile.
+    /// </summary>
+    public bool IsRunning(string bundleId)
+    {
+        var result = this.Run("/usr/bin/lsappinfo", ["find", $"bundleid={bundleId}"], TimeSpan.FromSeconds(3));
+        return result.ExitCode == 0 && result.Output.Contains("ASN:", StringComparison.Ordinal);
+    }
+
+    // What a terminal receives for each of herdr's key names, as iTerm's write text sends it.
+    internal static string TerminalBytes(string key) => key switch
+    {
+        "up" => "\u001b[A",
+        "down" => "\u001b[B",
+        "right" => "\u001b[C",
+        "left" => "\u001b[D",
+        "enter" => "\r",
+        "esc" => ITermController.Escape,
+        "tab" => "\t",
+        _ => key,
+    };
+
+    /// <summary>
+    /// Runs <paramref name="action"/> on the first Ghostty terminal whose working directory is <paramref name="path"/>,
+    /// bound to <c>t</c>. The working directory comes from Ghostty's shell integration.
+    /// </summary>
+    internal static string GhosttyScript(string path, string action)
+    {
+        var target = Quote(path.TrimEnd('/'));
+        return $$"""
+            tell application id "{{GhosttyBundleId}}"
+              repeat with t in terminals
+                set p to ""
+                try
+                  set p to working directory of t
+                end try
+                if p is {{target}} or p is ({{target}} & "/") then
+                  {{action}}
+                  return "found"
+                end if
+              end repeat
+            end tell
+            return "missing"
+            """;
+    }
+
+    // Ghostty's input text is a paste, which keeps a multi-line prompt from submitting early; Return follows as a key.
+    internal static string GhosttyWrite(string text, bool newline)
+    {
+        var lines = new List<string>();
+        if (text.Length > 0)
+        {
+            lines.Add($"input text {Quote(text)} to t");
+        }
+
+        if (newline)
+        {
+            lines.Add("delay 0.1");
+            lines.Add("send key \"enter\" to t");
+        }
+
+        return string.Join("\n      ", lines);
+    }
+
+    // Ghostty's send key covers named keys, but a printable key sends no text, so characters are typed with the text: action.
+    internal static string GhosttyKeys(IReadOnlyList<string> keys) =>
+        string.Join("\n      ", keys.Select(key => GhosttyKeyName(key) is { } name
+            ? $"send key {Quote(name)} to t"
+            : $"perform action {Quote("text:" + key.Replace("\\", "\\\\", StringComparison.Ordinal))} on t"));
+
+    internal static string? GhosttyKeyName(string key) => key switch
+    {
+        "up" => "arrowUp",
+        "down" => "arrowDown",
+        "left" => "arrowLeft",
+        "right" => "arrowRight",
+        "enter" => "enter",
+        "esc" => "escape",
+        "tab" => "tab",
+        _ => null,
+    };
 
     /// <summary>Quotes a string as an AppleScript string literal.</summary>
     internal static string Quote(string value) =>
