@@ -28,12 +28,12 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
                 case SessionSource.ClaudeDesktop:
                     return this.mac.OpenClaudeDesktopSession(session.SessionId);
                 case SessionSource.ClaudeCli:
-                    // Only an iTerm tab in the session's folder; a CLI in another terminal has no window to raise,
-                    // and raising iTerm anyway shows an empty window.
-                    return session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd);
+                    // Only an iTerm or Ghostty tab in the session's folder; a CLI in another terminal has no window to raise,
+                    // and raising a terminal anyway shows an unrelated window.
+                    return session.Cwd != null && this.mac.FocusTerminalAtPath(session.Cwd);
                 case SessionSource.Codex:
-                    // A Codex CLI session lives in an iTerm tab; otherwise open its thread in the ChatGPT app.
-                    return (session.Cwd != null && this.mac.FocusItermSessionAtPath(session.Cwd))
+                    // A Codex CLI session lives in a terminal tab; otherwise open its thread in the ChatGPT app.
+                    return (session.Cwd != null && this.mac.FocusTerminalAtPath(session.Cwd))
                         || this.mac.OpenUrl($"codex://threads/{Uri.EscapeDataString(session.SessionId)}");
                 default:
                     return false;
@@ -59,9 +59,9 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
                     Thread.Sleep(600);
                     return this.mac.SendEscape();
                 case SessionSource.ClaudeCli:
-                    return session.Cwd != null && this.mac.SendEscapeToItermSessionAtPath(session.Cwd);
+                    return session.Cwd != null && this.mac.SendEscapeToTerminalAtPath(session.Cwd);
                 case SessionSource.Codex:
-                    if (session.Cwd != null && this.mac.SendEscapeToItermSessionAtPath(session.Cwd))
+                    if (session.Cwd != null && this.mac.SendEscapeToTerminalAtPath(session.Cwd))
                     {
                         return true;
                     }

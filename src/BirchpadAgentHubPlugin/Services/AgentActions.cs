@@ -91,7 +91,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
             }
         }
 
-        // Presses keys by herdr's names (down, enter, esc, left, right, digits) in the agent's pane or iTerm tab,
+        // Presses keys by herdr's names (down, enter, esc, left, right, digits) in the agent's pane or terminal tab,
         // then waits briefly so the page rebuilt afterwards reads the updated screen.
         public Boolean PressKeys(CodingAgent agent, IReadOnlyList<String> keys)
         {
@@ -102,7 +102,7 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
                     sent = this.OnHerdr(h => h.SendKeys(agent.PaneId, keys.ToArray()));
                     break;
                 case AgentHost.Terminal or AgentHost.Codex when agent.Cwd != null:
-                    sent = this.Mac.WriteToItermSessionAtPath(agent.Cwd, String.Concat(keys.Select(TerminalBytes)), newline: false);
+                    sent = this.Mac.PressKeysInTerminalAtPath(agent.Cwd, keys);
                     break;
                 default:
                     return false;
@@ -111,19 +111,6 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
             Thread.Sleep(300);
             return sent;
         }
-
-        // What a terminal receives for each key name.
-        private static String TerminalBytes(String key) => key switch
-        {
-            "up" => "\u001b[A",
-            "down" => "\u001b[B",
-            "right" => "\u001b[C",
-            "left" => "\u001b[D",
-            "enter" => "\r",
-            "esc" => ITermController.Escape,
-            "tab" => "\t",
-            _ => key,
-        };
 
         // True when the agent's keys can be pressed directly, so a page can offer number keys without a readable menu.
         public Boolean CanPressKeys(CodingAgent agent) =>
@@ -161,12 +148,12 @@ namespace Loupedeck.BirchpadAgentHubPlugin.Services
                 case AgentHost.Herdr when agent.PaneId != null:
                     return this.OnHerdr(h => h.SendText(agent.PaneId, text, submit));
                 case AgentHost.Terminal when agent.Cwd != null:
-                    return this.Mac.WriteToItermSessionAtPath(agent.Cwd, text, submit);
+                    return this.Mac.WriteToTerminalAtPath(agent.Cwd, text, submit);
                 case AgentHost.ClaudeDesktop when agent.SessionId != null:
                     return this.Mac.OpenClaudeDesktopSession(agent.SessionId) && this.PasteAfterSwitch(MacAutomation.ClaudeBundleId, text, submit);
                 case AgentHost.Codex:
-                    // A Codex CLI in an iTerm tab takes the text there; otherwise its thread opens in the ChatGPT app.
-                    if (agent.Cwd != null && this.Mac.WriteToItermSessionAtPath(agent.Cwd, text, submit))
+                    // A Codex CLI in a terminal tab takes the text there; otherwise its thread opens in the ChatGPT app.
+                    if (agent.Cwd != null && this.Mac.WriteToTerminalAtPath(agent.Cwd, text, submit))
                     {
                         return true;
                     }

@@ -75,8 +75,10 @@ The placement rules live in `Birchpad.Core.Menu.MenuLayout` and are unit tested;
 Ring colors: blue working, amber needs approval, purple question, green done, red failed, gray idle.
 Usage rings: green under 70%, amber from 70%, red from 90%.
 
-CLI tiles find their iTerm tab by matching the session's folder to iTerm's `session.path`, which needs iTerm shell integration.
-Codex tiles open their thread with `codex://threads/<id>` unless an iTerm tab is in the thread's folder.
+CLI tiles find their terminal tab by matching the session's folder to iTerm's `session.path` or Ghostty's `working directory`, both from the terminal's shell integration.
+Only a running terminal is asked, iTerm first, then Ghostty; the first tab in the folder wins, so two tabs in one folder cannot be told apart.
+Ghostty takes typed text as a paste followed by an Enter key event, named keys through `send key`, and single characters through its `text:` action.
+Codex tiles open their thread with `codex://threads/<id>` unless a terminal tab is in the thread's folder.
 
 ## Usage sources
 

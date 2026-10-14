@@ -51,6 +51,37 @@ public sealed class AppleScriptCompileTests : IDisposable
             return; // osacompile is only on macOS.
         }
 
+        // iTerm's terms compile only where its dictionary is installed; iTerm is optional.
+        if (script.Contains(MacAutomation.ItermBundleId, StringComparison.Ordinal) && !Directory.Exists("/Applications/iTerm.app"))
+        {
+            return;
+        }
+
+        var (exitCode, _, error) = ProcessRunner.Run(Compiler, ["-e", script, "-o", this.output], TimeSpan.FromSeconds(20));
+
+        Assert.True(exitCode == 0, $"{name}: {error}");
+    }
+
+    public static TheoryData<string, string> GhosttyScripts() => new()
+    {
+        { "ghostty focus", MacAutomation.GhosttyScript("/Users/me/it's \"here\"", "focus t") },
+        { "ghostty escape", MacAutomation.GhosttyScript("/Users/me/site", MacAutomation.GhosttyKeys(["esc"])) },
+        { "ghostty write", MacAutomation.GhosttyScript("/Users/me/site", MacAutomation.GhosttyWrite("/pr-review \"x\"", newline: false)) },
+        { "ghostty write submit", MacAutomation.GhosttyScript("/Users/me/site", MacAutomation.GhosttyWrite("Line one\nline \\two", newline: true)) },
+        { "ghostty enter only", MacAutomation.GhosttyScript("/Users/me/site", MacAutomation.GhosttyWrite("", newline: true)) },
+        { "ghostty keys", MacAutomation.GhosttyScript("/Users/me/site", MacAutomation.GhosttyKeys(["down", "down", "enter", "1", "tab"])) },
+    };
+
+    // Ghostty's terms compile only where its dictionary is installed.
+    [Theory]
+    [MemberData(nameof(GhosttyScripts))]
+    public void Ghostty_script_compiles(string name, string script)
+    {
+        if (!File.Exists(Compiler) || !Directory.Exists("/Applications/Ghostty.app"))
+        {
+            return;
+        }
+
         var (exitCode, _, error) = ProcessRunner.Run(Compiler, ["-e", script, "-o", this.output], TimeSpan.FromSeconds(20));
 
         Assert.True(exitCode == 0, $"{name}: {error}");

@@ -9,7 +9,7 @@ public enum AgentHost
     /// <summary>A herdr pane: focused and typed into through herdr's socket, with no window focus needed.</summary>
     Herdr,
 
-    /// <summary>A Claude Code CLI in an iTerm tab, found by its folder.</summary>
+    /// <summary>A Claude Code CLI in an iTerm or Ghostty tab, found by its folder.</summary>
     Terminal,
 
     /// <summary>A Claude Desktop Code session.</summary>
